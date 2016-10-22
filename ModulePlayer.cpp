@@ -74,7 +74,7 @@ bool ModulePlayer::Start()
 	rightkicker.section.h = 26;
 
 	//TEXTURES LOAD
-	underball = App->textures->Load("pinball/Template.png");
+	underball = App->textures->Load("pinball/UnderBall.png");
 	overball = App->textures->Load("pinball/OverBall.png");
 	graphics = App->textures->Load("pinball/SpriteSheet.png");
 
@@ -128,7 +128,7 @@ update_status ModulePlayer::Update()
 	rightkicker.body->GetPosition(x, y);
 	App->renderer->Blit(graphics, x-50, y+15, &rightkicker.section, 1.0f, rightkicker.body->GetAngle(), 0, 0);
 
-	//App->renderer->Blit(overball, 0, 0, NULL);
+	App->renderer->Blit(overball, 0, 0, NULL);
 
 	return UPDATE_CONTINUE;
 }

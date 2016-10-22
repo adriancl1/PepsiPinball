@@ -28,6 +28,7 @@ bool ModuleSceneIntro::Start()
 	circle = App->textures->Load("pinball/wheel.png"); 
 	bonus_fx = App->audio->LoadFx("pinball/bonus.wav");
 	cowboy_fx = App->audio->LoadFx("pinball/cowboyhit.wav");
+	hat_fx = App->audio->LoadFx("pinball/hatfx.wav");
 	graphics = App->textures->Load("pinball/SpriteSheet.png");
 	
 
@@ -113,6 +114,7 @@ bool ModuleSceneIntro::Start()
 
 	App->physics->CreateChain(0, 0, RightIsle, 28, b2_staticBody);
 
+	//cowboy figurines
 	int cowboy[18] = {
 		3, 43,
 		3, 15,
@@ -140,6 +142,100 @@ bool ModuleSceneIntro::Start()
 		cowboys.getLast()->data->listener = this;
 	}
 
+	//lights underneath cowboys
+	for (int i = 0; i <= 10; i++) {
+		lights[i].x = 291;
+		lights[i].y = 163;
+		lights[i].w = 17;
+		lights[i].h = 11;
+	}
+
+	//mexican hats
+
+	int hat[24] = {
+		3, 18,
+		5, 23,
+		11, 26,
+		20, 27,
+		29, 26,
+		35, 21,
+		35, 16,
+		32, 13,
+		26, 8,
+		18, 7,
+		10, 8,
+		5, 13
+	};
+
+	hats.add(App->physics->CreateChain(401, 184, hat, 24, b2_staticBody));
+	hats.getLast()->data->listener = this;
+	hats.add(App->physics->CreateChain(396, 142, hat, 24, b2_staticBody));
+	hats.getLast()->data->listener = this;
+	hats.add(App->physics->CreateChain(455, 160, hat, 24, b2_staticBody));
+	hats.getLast()->data->listener = this;
+
+	//leftbarrels
+
+	int leftbarrelcoords[60] = {
+		148, 373,
+		149, 378,
+		157, 382,
+		165, 382,
+		173, 381,
+		177, 385,
+		177, 392,
+		179, 397,
+		189, 399,
+		198, 399,
+		202, 402,
+		205, 409,
+		215, 412,
+		227, 412,
+		231, 405,
+		231, 391,
+		228, 383,
+		220, 380,
+		209, 380,
+		209, 372,
+		209, 357,
+		206, 350,
+		197, 347,
+		187, 349,
+		180, 356,
+		172, 351,
+		164, 350,
+		154, 351,
+		149, 357,
+		149, 362
+	};
+
+	leftbarrels = App->physics->CreateChain(0, 0, leftbarrelcoords, 60, b2_staticBody);
+
+	int rightbarrelcoords[42] = {
+		413, 407,
+		411, 399,
+		411, 390,
+		414, 382,
+		419, 379,
+		427, 378,
+		436, 379,
+		437, 373,
+		440, 367,
+		447, 365,
+		456, 365,
+		463, 368,
+		464, 360,
+		466, 354,
+		471, 351,
+		479, 350,
+		487, 352,
+		492, 358,
+		493, 367,
+		490, 372,
+		454, 389
+	};
+
+	rightbarrels = App->physics->CreateChain(0, 0, rightbarrelcoords, 42, b2_staticBody);
 
 	return ret;
 }
@@ -170,10 +266,6 @@ update_status ModuleSceneIntro::Update()
 		circles.getLast()->data->listener = this;
 	}
 
-
-
-	
-
 	// Prepare for raycast ------------------------------------------------------
 	
 	iPoint mouse;
@@ -195,6 +287,20 @@ update_status ModuleSceneIntro::Update()
 		c = c->next;
 	}
 
+	int upperrowx = 244, upperrowy = 240;
+	for (int i = 0; i <= 5; i++) {
+		App->renderer->Blit(graphics, upperrowx, upperrowy, &lights[i], 1.0f);
+		upperrowx += 18;
+		upperrowy -= 11;
+	}
+	int bottomrowx = 284, bottomrowy = 255;
+	for (int i = 6; i <= 10; i++) {
+		App->renderer->Blit(graphics, bottomrowx, bottomrowy, &lights[i], 1.0f);
+		bottomrowx += 18;
+		bottomrowy -= 11;
+	}
+
+	//DRAW COWBOYS UP OR DOWN
 	p2List_item<PhysBody*>* cowboysdraw = cowboys.getFirst();
 	texcoords.x = 256;
 	texcoords.y = 246;
@@ -206,6 +312,22 @@ update_status ModuleSceneIntro::Update()
 		cowboysdraw->data->GetPosition(x, y);
 		App->renderer->Blit(graphics, x, y, &texcoords, 1.0f);
 		cowboysdraw = cowboysdraw->next;
+	}
+
+	
+
+	//DRAW MEXICAN HATS
+	p2List_item<PhysBody*>* hatsdraw = hats.getFirst();
+	texcoords.x = 256;
+	texcoords.y = 294;
+	texcoords.w = 38;
+	texcoords.h = 32;
+	while (hatsdraw != NULL)
+	{
+	int x, y;
+	hatsdraw->data->GetPosition(x, y);
+	App->renderer->Blit(graphics, x, y, &texcoords, 1.0f);
+	hatsdraw = hatsdraw->next;
 	}
 
 	// ray -----------------
@@ -235,17 +357,26 @@ void ModuleSceneIntro::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
 
 	//App->audio->PlayFx(bonus_fx);
 
-	if (cowboys.find(bodyA) != 1) {
+	if (cowboys.find(bodyA) != -1) {
 		p2List_item<PhysBody*>* cowboysbody = cowboys.getFirst();
+		int i = 0;
 		while (cowboysbody != NULL) {
 			if (cowboysbody->data == bodyA && to_delete.find(cowboysbody->data)==-1) {
 				App->audio->PlayFx(cowboy_fx);
 				to_delete.add(cowboysbody->data);//LIST TO DELETE BODIES OUTISDE WORLDSTEP
 				cowboys.del(cowboysbody);
+				lights[i].x = 291;
+				lights[i].y = 175;
+				lights[i].w = 17;
+				lights[i].h = 11;
 				return;
 			}
+			i++;
 			cowboysbody = cowboysbody->next;
 		}
+	}
+	if (hats.find(bodyA) != -1) {
+		App->audio->PlayFx(hat_fx);
 	}
 	/*
 	if(bodyA)

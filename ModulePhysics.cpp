@@ -17,7 +17,7 @@ ModulePhysics::ModulePhysics(Application* app, bool start_enabled) : Module(app,
 {
 	world = NULL;
 	mouse_joint = NULL;
-	debug = true;
+	debug = false;
 }
 
 // Destructor
@@ -53,17 +53,6 @@ update_status ModulePhysics::PreUpdate()
 			PhysBody* pb1 = (PhysBody*)c->GetFixtureA()->GetBody()->GetUserData();
 			PhysBody* pb2 = (PhysBody*)c->GetFixtureA()->GetBody()->GetUserData();
 			if(pb1 && pb2 && pb1->listener)
-				pb1->listener->OnCollision(pb1, pb2);
-		}
-	}
-
-	for (b2Contact* cow = world->GetContactList(); cow; cow = cow->GetNext())
-	{
-		if (cow->GetFixtureA()->IsSensor() && cow->IsTouching())
-		{
-			PhysBody* pb1 = (PhysBody*)cow->GetFixtureA()->GetBody()->GetUserData();
-			PhysBody* pb2 = (PhysBody*)cow->GetFixtureA()->GetBody()->GetUserData();
-			if (pb1 && pb2 && pb1->listener)
 				pb1->listener->OnCollision(pb1, pb2);
 		}
 	}

@@ -6,6 +6,7 @@
 
 class PhysBody;
 
+
 class ModuleSceneIntro : public Module
 {
 public:
@@ -21,7 +22,9 @@ public:
 public:
 	p2List<PhysBody*> circles;
 	p2List<PhysBody*> cowboys;
-	
+	p2List<PhysBody*> hats;
+	PhysBody* leftbarrels;
+	PhysBody* rightbarrels;
 
 	SDL_Rect texcoords;
 	PhysBody* sensor;
@@ -29,8 +32,10 @@ public:
 
 	SDL_Texture* circle;
 	SDL_Texture* graphics;
+	SDL_Rect lights[11];
 	uint bonus_fx;
 	uint cowboy_fx;
+	uint hat_fx;
 	p2Point<int> ray;
 	bool ray_on;
 };
