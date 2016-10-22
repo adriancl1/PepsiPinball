@@ -3,16 +3,17 @@
 #include "Globals.h"
 #include "p2Point.h"
 
+#include "SDL\include\SDL.h"
 
 class PhysBody;
-class SDL_Texture;
 
 struct Object {
-	SDL_Texture* texture;
+
+	SDL_Rect section;
 	PhysBody* body;
 	uint fx;
 
-	Object(): texture(NULL), body(NULL){}
+	Object(): body(NULL){}
 };
 
 class ModulePlayer : public Module
@@ -33,7 +34,9 @@ public:
 	Object rightkicker;
 	PhysBody* rightwheel;
 
-	//SDL_Texture* balltexture;
+	SDL_Texture* underball;
+	SDL_Texture* overball;
+	SDL_Texture* graphics;
 
 	int ballx;
 	int bally;

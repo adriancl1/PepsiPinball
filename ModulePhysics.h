@@ -24,6 +24,7 @@ public:
 	bool Contains(int x, int y) const;
 	int RayCast(int x1, int y1, int x2, int y2, float& normal_x, float& normal_y) const;
 	void Turn(int degrees);
+	double GetAngle() const;
 
 public:
 	int width, height;
@@ -51,8 +52,8 @@ public:
 	PhysBody* CreateRectangleSensor(int x, int y, int width, int height);
 	PhysBody* CreateChain(int x, int y, int* points, int size, b2BodyType type);
 	PhysBody* CreatePolygon(b2Vec2* vertices, int point, b2BodyType type);
-	PhysBody* CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2,  int count1,int count2, b2BodyType type);
-	void CreateRevoluteJoint(b2Body* bodyA, b2Body* bodyB, int upperangle, int lowerangle);
+	PhysBody* CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2,  int count1,int count2, b2BodyType type, int x, int y);
+	void CreateRevoluteJoint(b2Body* bodyA, b2Body* bodyB, int upperangle, int lowerangle, int pivot_x, int pivot_y);
 
 	void impulseleftkicker();
 

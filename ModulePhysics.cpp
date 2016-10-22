@@ -35,103 +35,6 @@ bool ModulePhysics::Start()
 	b2BodyDef bd;
 	ground = world->CreateBody(&bd);
 
-	int stage[178] = {
-		238, 513,
-		248, 508,
-		246, 495,
-		247, 481,
-		248, 467,
-		242, 453,
-		216, 436,
-		184, 422,
-		161, 414,
-		140, 401,
-		120, 392,
-		108, 378,
-		95, 364,
-		74, 336,
-		62, 313,
-		52, 291,
-		48, 276,
-		82, 256,
-		115, 236,
-		173, 209,
-		189, 231,
-		197, 242,
-		232, 220,
-		258, 203,
-		249, 176,
-		274, 163,
-		292, 178,
-		323, 161,
-		344, 162,
-		423, 117,
-		480, 76,
-		489, 71,
-		494, 76,
-		509, 84,
-		521, 92,
-		540, 93,
-		556, 93,
-		581, 99,
-		607, 110,
-		620, 126,
-		632, 144,
-		642, 170,
-		647, 190,
-		650, 208,
-		654, 228,
-		655, 259,
-		656, 302,
-		656, 328,
-		654, 365,
-		652, 400,
-		648, 415,
-		628, 413,
-		627, 382,
-		630, 344,
-		632, 306,
-		631, 271,
-		629, 244,
-		628, 225,
-		621, 199,
-		613, 173,
-		603, 147,
-		591, 128,
-		572, 120,
-		557, 114,
-		544, 113,
-		536, 123,
-		537, 140,
-		539, 163,
-		548, 189,
-		552, 215,
-		560, 242,
-		568, 262,
-		586, 285,
-		594, 304,
-		600, 320,
-		601, 338,
-		599, 354,
-		594, 374,
-		580, 385,
-		564, 395,
-		540, 400,
-		514, 401,
-		481, 410,
-		450, 424,
-		424, 441,
-		400, 456,
-		400, 476,
-		403, 496,
-		404, 513
-	};
-	CreateChain(0, 0, stage, 178, b2_staticBody);
-	
-	//right kicker ball
-
-	PhysBody* rightkickerball = CreateCircle(400, 470, 9, 0, b2_staticBody);
-
 	
 
 	return true;
@@ -266,11 +169,11 @@ PhysBody* ModulePhysics::CreateChain(int x, int y, int* points, int size, b2Body
 	return pbody;
 }
 
-PhysBody* ModulePhysics::CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2, int count1, int count2, b2BodyType type)
+PhysBody* ModulePhysics::CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2, int count1, int count2, b2BodyType type, int x, int y)
 {
 	b2BodyDef polygonbody;
 	polygonbody.type = type;
-	polygonbody.position.Set(PIXEL_TO_METERS(300), PIXEL_TO_METERS(470));
+	polygonbody.position.Set(PIXEL_TO_METERS(x), PIXEL_TO_METERS(y));
 
 	b2Body* b = world->CreateBody(&polygonbody);
 
@@ -297,12 +200,12 @@ PhysBody* ModulePhysics::CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2, in
 	return pbody;
 }
 
-void ModulePhysics::CreateRevoluteJoint(b2Body* bodyA, b2Body* bodyB, int upperangle, int lowerangle) {
+void ModulePhysics::CreateRevoluteJoint(b2Body* bodyA, b2Body* bodyB, int upperangle, int lowerangle, int pivot_x, int pivot_y) {
 
 	b2RevoluteJointDef JointDef;
 	JointDef.bodyA = bodyA;
 	JointDef.bodyB = bodyB;
-	b2Vec2 anchor(PIXEL_TO_METERS(13), PIXEL_TO_METERS(0));
+	b2Vec2 anchor(PIXEL_TO_METERS(pivot_x), PIXEL_TO_METERS(pivot_y));
 	JointDef.localAnchorA = anchor;
 	JointDef.localAnchorB = bodyB->GetLocalCenter();
 	JointDef.enableLimit = true;
@@ -506,6 +409,10 @@ int PhysBody::RayCast(int x1, int y1, int x2, int y2, float& normal_x, float& no
 
 void PhysBody::Turn(int degrees) {
 	body->ApplyAngularImpulse(DEGTORAD*degrees, true);
+}
+
+double PhysBody::GetAngle() const {
+	return RADTODEG*body->GetAngle();
 }
 
 void ModulePhysics::BeginContact(b2Contact* contact)
