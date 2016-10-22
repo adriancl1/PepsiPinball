@@ -61,7 +61,8 @@ public:
 	void BeginContact(b2Contact* contact);
 	
 	//destroyers
-	void DestroyBody(b2Body* bodytodestroy);
+	void DestroyBody(b2Body* bodytodestroy);	
+	void SweapBodies();
 
 
 private:

@@ -3,6 +3,7 @@
 #include "ModuleInput.h"
 #include "ModuleRender.h"
 #include "ModulePhysics.h"
+#include "ModuleSceneIntro.h"
 #include "p2Point.h"
 #include "math.h"
 
@@ -56,6 +57,16 @@ update_status ModulePhysics::PreUpdate()
 		}
 	}
 
+	for (b2Contact* cow = world->GetContactList(); cow; cow = cow->GetNext())
+	{
+		if (cow->GetFixtureA()->IsSensor() && cow->IsTouching())
+		{
+			PhysBody* pb1 = (PhysBody*)cow->GetFixtureA()->GetBody()->GetUserData();
+			PhysBody* pb2 = (PhysBody*)cow->GetFixtureA()->GetBody()->GetUserData();
+			if (pb1 && pb2 && pb1->listener)
+				pb1->listener->OnCollision(pb1, pb2);
+		}
+	}
 	return UPDATE_CONTINUE;
 }
 
@@ -327,9 +338,8 @@ update_status ModulePhysics::PostUpdate()
 		mouse_joint = nullptr;
 		mousein = false;
 	}
-	if (App->input->GetKey(SDL_SCANCODE_5) == KEY_DOWN) {
-		
-	}
+	
+	SweapBodies();
 
 	return UPDATE_CONTINUE;
 }
@@ -428,6 +438,14 @@ void ModulePhysics::BeginContact(b2Contact* contact)
 }
 
 void ModulePhysics::DestroyBody(b2Body* bodytodestroy) {
-
 	world->DestroyBody(bodytodestroy);
+}
+
+void ModulePhysics::SweapBodies() {
+	p2List_item<PhysBody*>* scenebodies = App->scene_intro->to_delete.getFirst();
+	if (scenebodies != NULL) {
+		world->DestroyBody(scenebodies->data->body);
+		App->scene_intro->to_delete.del(scenebodies);
+		scenebodies = scenebodies->next;
+	}
 }

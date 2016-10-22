@@ -27,7 +27,8 @@ bool ModuleSceneIntro::Start()
 
 	circle = App->textures->Load("pinball/wheel.png"); 
 	bonus_fx = App->audio->LoadFx("pinball/bonus.wav");
-	backgroundstage = App->textures->Load("pinball/UnderBall.png");
+	cowboy_fx = App->audio->LoadFx("pinball/cowboyhit.wav");
+	graphics = App->textures->Load("pinball/SpriteSheet.png");
 	
 
 	sensor = App->physics->CreateRectangleSensor(SCREEN_WIDTH / 2, SCREEN_HEIGHT, SCREEN_WIDTH, 50);
@@ -112,6 +113,33 @@ bool ModuleSceneIntro::Start()
 
 	App->physics->CreateChain(0, 0, RightIsle, 28, b2_staticBody);
 
+	int cowboy[18] = {
+		3, 43,
+		3, 15,
+		4, 9,
+		8, 5,
+		13, 3,
+		19, 6,
+		21, 11,
+		21, 36,
+		8, 44
+	};
+
+	int upperrowx = 220, upperrowy = 200;
+	for (int i = 0; i <= 5; i++) {
+		cowboys.add(App->physics->CreateChain(upperrowx, upperrowy, cowboy, 18, b2_staticBody));
+		upperrowx += 21;
+		upperrowy -= 11;
+		cowboys.getLast()->data->listener = this;
+	}
+	int bottomrowx = 260, bottomrowy = 215;
+	for (int i = 0; i <= 4; i++) {
+		cowboys.add(App->physics->CreateChain(bottomrowx, bottomrowy, cowboy, 18, b2_staticBody));
+		bottomrowx += 21;
+		bottomrowy -= 11;
+		cowboys.getLast()->data->listener = this;
+	}
+
 
 	return ret;
 }
@@ -167,6 +195,19 @@ update_status ModuleSceneIntro::Update()
 		c = c->next;
 	}
 
+	p2List_item<PhysBody*>* cowboysdraw = cowboys.getFirst();
+	texcoords.x = 256;
+	texcoords.y = 246;
+	texcoords.w = 23;
+	texcoords.h = 47;
+	while (cowboysdraw != NULL)
+	{
+		int x, y;
+		cowboysdraw->data->GetPosition(x, y);
+		App->renderer->Blit(graphics, x, y, &texcoords, 1.0f);
+		cowboysdraw = cowboysdraw->next;
+	}
+
 	// ray -----------------
 	if(ray_on == true)
 	{
@@ -192,8 +233,20 @@ void ModuleSceneIntro::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
 {
 	int x, y;
 
-	App->audio->PlayFx(bonus_fx);
+	//App->audio->PlayFx(bonus_fx);
 
+	if (cowboys.find(bodyA) != 1) {
+		p2List_item<PhysBody*>* cowboysbody = cowboys.getFirst();
+		while (cowboysbody != NULL) {
+			if (cowboysbody->data == bodyA && to_delete.find(cowboysbody->data)==-1) {
+				App->audio->PlayFx(cowboy_fx);
+				to_delete.add(cowboysbody->data);//LIST TO DELETE BODIES OUTISDE WORLDSTEP
+				cowboys.del(cowboysbody);
+				return;
+			}
+			cowboysbody = cowboysbody->next;
+		}
+	}
 	/*
 	if(bodyA)
 	{

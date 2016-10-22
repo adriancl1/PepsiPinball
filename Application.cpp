@@ -35,10 +35,11 @@ Application::Application()
 	AddModule(audio);
 	
 	// Scenes
-	AddModule(scene_intro);
+	
 	
 	// Player
 	AddModule(player);
+	AddModule(scene_intro);
 }
 
 Application::~Application()
