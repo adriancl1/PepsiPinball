@@ -14,6 +14,7 @@ public:
 	~ModuleSceneIntro();
 
 	bool Start();
+	void CreateStage();
 	update_status Update();
 	bool CleanUp();
 	void OnCollision(PhysBody* bodyA, PhysBody* bodyB);
@@ -36,6 +37,7 @@ public:
 	uint bonus_fx;
 	uint cowboy_fx;
 	uint hat_fx;
+	uint barrel_fx;
 	p2Point<int> ray;
 	bool ray_on;
 };

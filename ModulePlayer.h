@@ -34,9 +34,15 @@ public:
 	Object rightkicker;
 	PhysBody* rightwheel;
 
+	Object rightkicker2;
+	PhysBody* rightwheel2;
+
 	SDL_Texture* underball;
 	SDL_Texture* overball;
 	SDL_Texture* graphics;
+
+	uint death_fx;
+	uint kicker_fx;
 
 	int ballx;
 	int bally;

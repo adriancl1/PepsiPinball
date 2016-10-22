@@ -29,12 +29,174 @@ bool ModuleSceneIntro::Start()
 	bonus_fx = App->audio->LoadFx("pinball/bonus.wav");
 	cowboy_fx = App->audio->LoadFx("pinball/cowboyhit.wav");
 	hat_fx = App->audio->LoadFx("pinball/hatfx.wav");
+	barrel_fx = App->audio->LoadFx("pinball/barrelfx.wav");
 	graphics = App->textures->Load("pinball/SpriteSheet.png");
 	
 
 	sensor = App->physics->CreateRectangleSensor(SCREEN_WIDTH / 2, SCREEN_HEIGHT, SCREEN_WIDTH, 50);
 
+	CreateStage();
+	
+	return ret;
+}
 
+// Load assets
+bool ModuleSceneIntro::CleanUp()
+{
+	LOG("Unloading Intro scene");
+
+	return true;
+}
+
+// Update: draw background
+update_status ModuleSceneIntro::Update()
+{
+	
+
+	if(App->input->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN)
+	{
+		ray_on = !ray_on;
+		ray.x = App->input->GetMouseX();
+		ray.y = App->input->GetMouseY();
+	}
+
+	if(App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
+	{
+		circles.add(App->physics->CreateCircle(App->input->GetMouseX(), App->input->GetMouseY(), 9, 0, b2_dynamicBody));
+		circles.getLast()->data->listener = this;
+	}
+
+	// Prepare for raycast ------------------------------------------------------
+	
+	iPoint mouse;
+	mouse.x = App->input->GetMouseX();
+	mouse.y = App->input->GetMouseY();
+	int ray_hit = ray.DistanceTo(mouse);
+
+	fVector normal(0.0f, 0.0f);
+
+	// All draw functions ------------------------------------------------------
+	p2List_item<PhysBody*>* c = circles.getFirst();
+
+	while(c != NULL)
+	{
+		int x, y;
+		c->data->GetPosition(x, y);
+		if(c->data->Contains(App->input->GetMouseX(), App->input->GetMouseY()))
+			App->renderer->Blit(circle, x, y, NULL, 1.0f, c->data->GetRotation());
+		c = c->next;
+	}
+
+	int upperrowx = 244, upperrowy = 240;
+	for (int i = 0; i <= 5; i++) {
+		App->renderer->Blit(graphics, upperrowx, upperrowy, &lights[i], 1.0f);
+		upperrowx += 18;
+		upperrowy -= 11;
+	}
+	int bottomrowx = 284, bottomrowy = 255;
+	for (int i = 6; i <= 10; i++) {
+		App->renderer->Blit(graphics, bottomrowx, bottomrowy, &lights[i], 1.0f);
+		bottomrowx += 18;
+		bottomrowy -= 11;
+	}
+
+	//DRAW COWBOYS UP OR DOWN
+	p2List_item<PhysBody*>* cowboysdraw = cowboys.getFirst();
+	texcoords.x = 256;
+	texcoords.y = 246;
+	texcoords.w = 23;
+	texcoords.h = 47;
+	while (cowboysdraw != NULL)
+	{
+		int x, y;
+		cowboysdraw->data->GetPosition(x, y);
+		App->renderer->Blit(graphics, x, y, &texcoords, 1.0f);
+		cowboysdraw = cowboysdraw->next;
+	}
+
+	
+
+	//DRAW MEXICAN HATS
+	p2List_item<PhysBody*>* hatsdraw = hats.getFirst();
+	texcoords.x = 256;
+	texcoords.y = 294;
+	texcoords.w = 38;
+	texcoords.h = 32;
+	while (hatsdraw != NULL)
+	{
+	int x, y;
+	hatsdraw->data->GetPosition(x, y);
+	App->renderer->Blit(graphics, x, y, &texcoords, 1.0f);
+	hatsdraw = hatsdraw->next;
+	}
+
+	// ray -----------------
+	if(ray_on == true)
+	{
+		fVector destination(mouse.x-ray.x, mouse.y-ray.y);
+		destination.Normalize();
+		destination *= ray_hit;
+
+		App->renderer->DrawLine(ray.x, ray.y, ray.x + destination.x, ray.y + destination.y, 255, 255, 255);
+
+		if(normal.x != 0.0f)
+			App->renderer->DrawLine(ray.x + destination.x, ray.y + destination.y, ray.x + destination.x + normal.x * 25.0f, ray.y + destination.y + normal.y * 25.0f, 100, 255, 100);
+	}
+
+	//DRAW MAP
+
+	//App->renderer->Blit(backgroundstage, 0, 0, NULL);
+	//App->renderer->Blit(leftkicker, 247, 450, NULL);
+
+	return UPDATE_CONTINUE;
+}
+
+void ModuleSceneIntro::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
+{
+	int x, y;
+
+	//App->audio->PlayFx(bonus_fx);
+
+	if (cowboys.find(bodyA) != -1) {
+		p2List_item<PhysBody*>* cowboysbody = cowboys.getFirst();
+		int i = 0;
+		while (cowboysbody != NULL) {
+			if (cowboysbody->data == bodyA && to_delete.find(cowboysbody->data)==-1) {
+				App->audio->PlayFx(cowboy_fx);
+				to_delete.add(cowboysbody->data);//LIST TO DELETE BODIES OUTISDE WORLDSTEP
+				cowboys.del(cowboysbody);
+				lights[i].x = 291;
+				lights[i].y = 175;
+				lights[i].w = 17;
+				lights[i].h = 11;
+				return;
+			}
+			i++;
+			cowboysbody = cowboysbody->next;
+		}
+	}
+	if (hats.find(bodyA) != -1) {
+		App->audio->PlayFx(hat_fx);
+	}
+
+	if (bodyA == leftbarrels|| bodyA == rightbarrels) {
+		App->audio->PlayFx(barrel_fx);
+	}
+	/*
+	if(bodyA)
+	{
+		bodyA->GetPosition(x, y);
+		App->renderer->DrawCircle(x, y, 50, 100, 100, 100);
+	}
+
+	if(bodyB)
+	{
+		bodyB->GetPosition(x, y);
+		App->renderer->DrawCircle(x, y, 50, 100, 100, 100);
+	}*/
+}
+
+void ModuleSceneIntro::CreateStage() {
 	int stage[108] = {
 		228, 542,
 		248, 480,
@@ -210,6 +372,7 @@ bool ModuleSceneIntro::Start()
 	};
 
 	leftbarrels = App->physics->CreateChain(0, 0, leftbarrelcoords, 60, b2_staticBody);
+	leftbarrels->listener = this;
 
 	int rightbarrelcoords[42] = {
 		413, 407,
@@ -236,158 +399,5 @@ bool ModuleSceneIntro::Start()
 	};
 
 	rightbarrels = App->physics->CreateChain(0, 0, rightbarrelcoords, 42, b2_staticBody);
-
-	return ret;
-}
-
-// Load assets
-bool ModuleSceneIntro::CleanUp()
-{
-	LOG("Unloading Intro scene");
-
-	return true;
-}
-
-// Update: draw background
-update_status ModuleSceneIntro::Update()
-{
-	
-
-	if(App->input->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN)
-	{
-		ray_on = !ray_on;
-		ray.x = App->input->GetMouseX();
-		ray.y = App->input->GetMouseY();
-	}
-
-	if(App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
-	{
-		circles.add(App->physics->CreateCircle(App->input->GetMouseX(), App->input->GetMouseY(), 9, 0, b2_dynamicBody));
-		circles.getLast()->data->listener = this;
-	}
-
-	// Prepare for raycast ------------------------------------------------------
-	
-	iPoint mouse;
-	mouse.x = App->input->GetMouseX();
-	mouse.y = App->input->GetMouseY();
-	int ray_hit = ray.DistanceTo(mouse);
-
-	fVector normal(0.0f, 0.0f);
-
-	// All draw functions ------------------------------------------------------
-	p2List_item<PhysBody*>* c = circles.getFirst();
-
-	while(c != NULL)
-	{
-		int x, y;
-		c->data->GetPosition(x, y);
-		if(c->data->Contains(App->input->GetMouseX(), App->input->GetMouseY()))
-			App->renderer->Blit(circle, x, y, NULL, 1.0f, c->data->GetRotation());
-		c = c->next;
-	}
-
-	int upperrowx = 244, upperrowy = 240;
-	for (int i = 0; i <= 5; i++) {
-		App->renderer->Blit(graphics, upperrowx, upperrowy, &lights[i], 1.0f);
-		upperrowx += 18;
-		upperrowy -= 11;
-	}
-	int bottomrowx = 284, bottomrowy = 255;
-	for (int i = 6; i <= 10; i++) {
-		App->renderer->Blit(graphics, bottomrowx, bottomrowy, &lights[i], 1.0f);
-		bottomrowx += 18;
-		bottomrowy -= 11;
-	}
-
-	//DRAW COWBOYS UP OR DOWN
-	p2List_item<PhysBody*>* cowboysdraw = cowboys.getFirst();
-	texcoords.x = 256;
-	texcoords.y = 246;
-	texcoords.w = 23;
-	texcoords.h = 47;
-	while (cowboysdraw != NULL)
-	{
-		int x, y;
-		cowboysdraw->data->GetPosition(x, y);
-		App->renderer->Blit(graphics, x, y, &texcoords, 1.0f);
-		cowboysdraw = cowboysdraw->next;
-	}
-
-	
-
-	//DRAW MEXICAN HATS
-	p2List_item<PhysBody*>* hatsdraw = hats.getFirst();
-	texcoords.x = 256;
-	texcoords.y = 294;
-	texcoords.w = 38;
-	texcoords.h = 32;
-	while (hatsdraw != NULL)
-	{
-	int x, y;
-	hatsdraw->data->GetPosition(x, y);
-	App->renderer->Blit(graphics, x, y, &texcoords, 1.0f);
-	hatsdraw = hatsdraw->next;
-	}
-
-	// ray -----------------
-	if(ray_on == true)
-	{
-		fVector destination(mouse.x-ray.x, mouse.y-ray.y);
-		destination.Normalize();
-		destination *= ray_hit;
-
-		App->renderer->DrawLine(ray.x, ray.y, ray.x + destination.x, ray.y + destination.y, 255, 255, 255);
-
-		if(normal.x != 0.0f)
-			App->renderer->DrawLine(ray.x + destination.x, ray.y + destination.y, ray.x + destination.x + normal.x * 25.0f, ray.y + destination.y + normal.y * 25.0f, 100, 255, 100);
-	}
-
-	//DRAW MAP
-
-	//App->renderer->Blit(backgroundstage, 0, 0, NULL);
-	//App->renderer->Blit(leftkicker, 247, 450, NULL);
-
-	return UPDATE_CONTINUE;
-}
-
-void ModuleSceneIntro::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
-{
-	int x, y;
-
-	//App->audio->PlayFx(bonus_fx);
-
-	if (cowboys.find(bodyA) != -1) {
-		p2List_item<PhysBody*>* cowboysbody = cowboys.getFirst();
-		int i = 0;
-		while (cowboysbody != NULL) {
-			if (cowboysbody->data == bodyA && to_delete.find(cowboysbody->data)==-1) {
-				App->audio->PlayFx(cowboy_fx);
-				to_delete.add(cowboysbody->data);//LIST TO DELETE BODIES OUTISDE WORLDSTEP
-				cowboys.del(cowboysbody);
-				lights[i].x = 291;
-				lights[i].y = 175;
-				lights[i].w = 17;
-				lights[i].h = 11;
-				return;
-			}
-			i++;
-			cowboysbody = cowboysbody->next;
-		}
-	}
-	if (hats.find(bodyA) != -1) {
-		App->audio->PlayFx(hat_fx);
-	}
-	/*
-	if(bodyA)
-	{
-		bodyA->GetPosition(x, y);
-		App->renderer->DrawCircle(x, y, 50, 100, 100, 100);
-	}
-
-	if(bodyB)
-	{
-		bodyB->GetPosition(x, y);
-		App->renderer->DrawCircle(x, y, 50, 100, 100, 100);
-	}*/
+	rightbarrels->listener = this;
 }
