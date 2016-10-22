@@ -23,6 +23,7 @@ public:
 	float GetRotation() const;
 	bool Contains(int x, int y) const;
 	int RayCast(int x1, int y1, int x2, int y2, float& normal_x, float& normal_y) const;
+	void Turn(int degrees);
 
 public:
 	int width, height;
@@ -51,7 +52,7 @@ public:
 	PhysBody* CreateChain(int x, int y, int* points, int size, b2BodyType type);
 	PhysBody* CreatePolygon(b2Vec2* vertices, int point, b2BodyType type);
 	PhysBody* CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2,  int count1,int count2, b2BodyType type);
-	b2RevoluteJoint* CreateRevoluteJoint(b2RevoluteJoint* joint, b2Body* bodyA, b2Body* bodyB);
+	void CreateRevoluteJoint(b2Body* bodyA, b2Body* bodyB, int upperangle, int lowerangle);
 
 	void impulseleftkicker();
 
@@ -67,6 +68,5 @@ private:
 	bool debug;
 	b2World* world;
 	b2MouseJoint* mouse_joint;
-	b2RevoluteJoint* left_joint;
 	b2Body* ground;
 };

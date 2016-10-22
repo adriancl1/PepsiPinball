@@ -3,6 +3,18 @@
 #include "Globals.h"
 #include "p2Point.h"
 
+
+class PhysBody;
+class SDL_Texture;
+
+struct Object {
+	SDL_Texture* texture;
+	PhysBody* body;
+	uint fx;
+
+	Object(): texture(NULL), body(NULL){}
+};
+
 class ModulePlayer : public Module
 {
 public:
@@ -13,7 +25,13 @@ public:
 	update_status Update();
 	bool CleanUp();
 
-	PhysBody* ball;
+	Object ball;
+
+	Object leftkicker;
+	PhysBody* leftwheel;
+
+	Object rightkicker;
+	PhysBody* rightwheel;
 
 	//SDL_Texture* balltexture;
 

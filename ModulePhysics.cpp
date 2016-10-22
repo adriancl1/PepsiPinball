@@ -127,29 +127,6 @@ bool ModulePhysics::Start()
 		404, 513
 	};
 	CreateChain(0, 0, stage, 178, b2_staticBody);
-
-	//left kicker ball
-
-	PhysBody* leftkickerball = CreateCircle(350, 470, 9, 0, b2_staticBody);
-
-	//left kicker
-	b2Vec2 upperleftvertices[6];
-	upperleftvertices[0].Set(0, 0);
-	upperleftvertices[1].Set(0.029, -0.15);
-	upperleftvertices[2].Set(0.104, -0.3);
-	upperleftvertices[3].Set(0.894, -0.16);
-	upperleftvertices[4].Set(0.934, 0);
-	upperleftvertices[5].Set(0, 0);
-	b2Vec2 bottomleftvertices[6];
-	bottomleftvertices[0].Set(0, 0);
-	bottomleftvertices[1].Set(0.029, 0.15);
-	bottomleftvertices[2].Set(0.104, 0.3);
-	bottomleftvertices[3].Set(0.894, 0.1);
-	bottomleftvertices[4].Set(0.934, 0);
-	bottomleftvertices[5].Set(0, 0);
-
-	PhysBody* leftkicker = CreatePolygons(upperleftvertices, bottomleftvertices, 6, 6, b2_dynamicBody);
-	left_joint=CreateRevoluteJoint(left_joint, leftkickerball->body, leftkicker->body);
 	
 	//right kicker ball
 
@@ -293,19 +270,23 @@ PhysBody* ModulePhysics::CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2, in
 {
 	b2BodyDef polygonbody;
 	polygonbody.type = type;
-	polygonbody.position.Set(PIXEL_TO_METERS(350), PIXEL_TO_METERS(470));
+	polygonbody.position.Set(PIXEL_TO_METERS(300), PIXEL_TO_METERS(470));
 
 	b2Body* b = world->CreateBody(&polygonbody);
 
 	b2PolygonShape polygon1shape;
 	polygon1shape.Set(vertices1, count1);
 	b2FixtureDef polygon1fix;
+	polygon1fix.density = 1.0f;
+	polygon1fix.restitution = 0.0f;
 	polygon1fix.shape = &polygon1shape;
 	b->CreateFixture(&polygon1fix);
 
 	b2PolygonShape polygon2shape;
 	polygon2shape.Set(vertices2, count2);
 	b2FixtureDef polygon2fix;
+	polygon2fix.density = 1.0f;
+	polygon2fix.restitution = 0.0f;
 	polygon2fix.shape = &polygon2shape;
 	b->CreateFixture(&polygon2fix);
 
@@ -316,15 +297,18 @@ PhysBody* ModulePhysics::CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2, in
 	return pbody;
 }
 
-b2RevoluteJoint* ModulePhysics::CreateRevoluteJoint(b2RevoluteJoint* joint, b2Body* bodyA, b2Body* bodyB) {
+void ModulePhysics::CreateRevoluteJoint(b2Body* bodyA, b2Body* bodyB, int upperangle, int lowerangle) {
 
 	b2RevoluteJointDef JointDef;
 	JointDef.bodyA = bodyA;
 	JointDef.bodyB = bodyB;
-	b2Vec2 anchor = bodyA->GetLocalCenter();
-	JointDef.localAnchorA = bodyA->GetLocalCenter();
+	b2Vec2 anchor(PIXEL_TO_METERS(13), PIXEL_TO_METERS(0));
+	JointDef.localAnchorA = anchor;
 	JointDef.localAnchorB = bodyB->GetLocalCenter();
-	return(b2RevoluteJoint*)world->CreateJoint(&JointDef);
+	JointDef.enableLimit = true;
+	JointDef.upperAngle = DEGTORAD * upperangle;
+	JointDef.lowerAngle = DEGTORAD * lowerangle;
+	world->CreateJoint(&JointDef);
 }
 
 // 
@@ -440,11 +424,8 @@ update_status ModulePhysics::PostUpdate()
 		mouse_joint = nullptr;
 		mousein = false;
 	}
-
 	if (App->input->GetKey(SDL_SCANCODE_5) == KEY_DOWN) {
-		b2Vec2 force(80, -80);
-		left_joint->GetBodyA()->ApplyAngularImpulse(DEGTORAD * -360, true);
-		left_joint->GetBodyB()->ApplyAngularImpulse(DEGTORAD * -360, true);
+		
 	}
 
 	return UPDATE_CONTINUE;
@@ -521,6 +502,10 @@ int PhysBody::RayCast(int x1, int y1, int x2, int y2, float& normal_x, float& no
 	}
 
 	return ret;
+}
+
+void PhysBody::Turn(int degrees) {
+	body->ApplyAngularImpulse(DEGTORAD*degrees, true);
 }
 
 void ModulePhysics::BeginContact(b2Contact* contact)
