@@ -62,7 +62,7 @@ update_status ModuleSceneIntro::Update()
 
 	if(App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
 	{
-		circles.add(App->physics->CreateCircle(App->input->GetMouseX(), App->input->GetMouseY(), 9, 0, b2_dynamicBody));
+		circles.add(App->physics->CreateCircle(App->input->GetMouseX(), App->input->GetMouseY(), 9, 0,false, b2_dynamicBody));
 		circles.getLast()->data->listener = this;
 	}
 
@@ -254,7 +254,7 @@ void ModuleSceneIntro::CreateStage() {
 		427, 545
 	};
 
-	App->physics->CreateChain(0, 0, stage, 108, b2_staticBody);
+	App->physics->CreateChain(0, 0, stage, 108, b2_staticBody, 0);
 
 	//rightisle
 	int RightIsle[28] = {
@@ -274,7 +274,7 @@ void ModuleSceneIntro::CreateStage() {
 		494, 373
 	};
 
-	App->physics->CreateChain(0, 0, RightIsle, 28, b2_staticBody);
+	App->physics->CreateChain(0, 0, RightIsle, 28, b2_staticBody, 0);
 
 	//cowboy figurines
 	int cowboy[18] = {
@@ -291,14 +291,14 @@ void ModuleSceneIntro::CreateStage() {
 
 	int upperrowx = 220, upperrowy = 200;
 	for (int i = 0; i <= 5; i++) {
-		cowboys.add(App->physics->CreateChain(upperrowx, upperrowy, cowboy, 18, b2_staticBody));
+		cowboys.add(App->physics->CreateChain(upperrowx, upperrowy, cowboy, 18, b2_staticBody, COWBOY_REST));
 		upperrowx += 21;
 		upperrowy -= 11;
 		cowboys.getLast()->data->listener = this;
 	}
 	int bottomrowx = 260, bottomrowy = 215;
 	for (int i = 0; i <= 4; i++) {
-		cowboys.add(App->physics->CreateChain(bottomrowx, bottomrowy, cowboy, 18, b2_staticBody));
+		cowboys.add(App->physics->CreateChain(bottomrowx, bottomrowy, cowboy, 18, b2_staticBody, COWBOY_REST));
 		bottomrowx += 21;
 		bottomrowy -= 11;
 		cowboys.getLast()->data->listener = this;
@@ -329,11 +329,11 @@ void ModuleSceneIntro::CreateStage() {
 		5, 13
 	};
 
-	hats.add(App->physics->CreateChain(401, 184, hat, 24, b2_staticBody));
+	hats.add(App->physics->CreateChain(401, 184, hat, 24, b2_staticBody, HAT_REST));
 	hats.getLast()->data->listener = this;
-	hats.add(App->physics->CreateChain(396, 142, hat, 24, b2_staticBody));
+	hats.add(App->physics->CreateChain(396, 142, hat, 24, b2_staticBody, HAT_REST));
 	hats.getLast()->data->listener = this;
-	hats.add(App->physics->CreateChain(455, 160, hat, 24, b2_staticBody));
+	hats.add(App->physics->CreateChain(455, 160, hat, 24, b2_staticBody, HAT_REST));
 	hats.getLast()->data->listener = this;
 
 	//leftbarrels
@@ -371,7 +371,7 @@ void ModuleSceneIntro::CreateStage() {
 		149, 362
 	};
 
-	leftbarrels = App->physics->CreateChain(0, 0, leftbarrelcoords, 60, b2_staticBody);
+	leftbarrels = App->physics->CreateChain(0, 0, leftbarrelcoords, 60, b2_staticBody, BARRELS_REST);
 	leftbarrels->listener = this;
 
 	int rightbarrelcoords[42] = {
@@ -398,6 +398,6 @@ void ModuleSceneIntro::CreateStage() {
 		454, 389
 	};
 
-	rightbarrels = App->physics->CreateChain(0, 0, rightbarrelcoords, 42, b2_staticBody);
+	rightbarrels = App->physics->CreateChain(0, 0, rightbarrelcoords, 42, b2_staticBody, BARRELS_REST);
 	rightbarrels->listener = this;
 }

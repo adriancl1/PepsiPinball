@@ -59,10 +59,11 @@ update_status ModulePhysics::PreUpdate()
 	return UPDATE_CONTINUE;
 }
 
-PhysBody* ModulePhysics::CreateCircle(int x, int y, int radius, float Rest, b2BodyType type)
+PhysBody* ModulePhysics::CreateCircle(int x, int y, int radius, float Rest,bool isBullet, b2BodyType type)
 {
 	b2BodyDef body;
 	body.type = type;
+	body.bullet = isBullet;
 	body.position.Set(PIXEL_TO_METERS(x), PIXEL_TO_METERS(y));
 
 	b2Body* b = world->CreateBody(&body);
@@ -134,7 +135,7 @@ PhysBody* ModulePhysics::CreateRectangleSensor(int x, int y, int width, int heig
 	return pbody;
 }
 
-PhysBody* ModulePhysics::CreateChain(int x, int y, int* points, int size, b2BodyType type)
+PhysBody* ModulePhysics::CreateChain(int x, int y, int* points, int size, b2BodyType type, float Rest)
 {
 	b2BodyDef body;
 	body.type = type;
@@ -155,7 +156,7 @@ PhysBody* ModulePhysics::CreateChain(int x, int y, int* points, int size, b2Body
 
 	b2FixtureDef fixture;
 	fixture.shape = &shape;
-
+	fixture.restitution = Rest;
 	b->CreateFixture(&fixture);
 
 	delete p;
@@ -169,7 +170,7 @@ PhysBody* ModulePhysics::CreateChain(int x, int y, int* points, int size, b2Body
 	return pbody;
 }
 
-PhysBody* ModulePhysics::CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2, int count1, int count2, b2BodyType type, int x, int y)
+PhysBody* ModulePhysics::CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2, int count1, int count2, b2BodyType type, int x, int y, float rest)
 {
 	b2BodyDef polygonbody;
 	polygonbody.type = type;
@@ -181,7 +182,7 @@ PhysBody* ModulePhysics::CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2, in
 	polygon1shape.Set(vertices1, count1);
 	b2FixtureDef polygon1fix;
 	polygon1fix.density = 1.0f;
-	polygon1fix.restitution = 0.0f;
+	polygon1fix.restitution = rest;
 	polygon1fix.shape = &polygon1shape;
 	b->CreateFixture(&polygon1fix);
 
@@ -189,7 +190,7 @@ PhysBody* ModulePhysics::CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2, in
 	polygon2shape.Set(vertices2, count2);
 	b2FixtureDef polygon2fix;
 	polygon2fix.density = 1.0f;
-	polygon2fix.restitution = 0.0f;
+	polygon2fix.restitution = rest;
 	polygon2fix.shape = &polygon2shape;
 	b->CreateFixture(&polygon2fix);
 

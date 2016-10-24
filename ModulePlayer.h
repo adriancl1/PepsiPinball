@@ -7,6 +7,7 @@
 
 class PhysBody;
 
+#define KICKER_REST 0.05
 struct Object {
 
 	SDL_Rect section;

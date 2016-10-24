@@ -6,6 +6,10 @@
 
 class PhysBody;
 
+#define HAT_REST 0.5
+#define COWBOY_REST 0.2
+#define BARRELS_REST 0.2
+
 
 class ModuleSceneIntro : public Module
 {

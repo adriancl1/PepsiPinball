@@ -47,12 +47,12 @@ public:
 	bool mousein=false;
 	b2Body* mousebody= nullptr;
 
-	PhysBody* CreateCircle(int x, int y, int radius, float Rest, b2BodyType type);
+	PhysBody* CreateCircle(int x, int y, int radius, float Rest, bool isBullet, b2BodyType type);
 	PhysBody* CreateRectangle(int x, int y, int width, int height);
 	PhysBody* CreateRectangleSensor(int x, int y, int width, int height);
-	PhysBody* CreateChain(int x, int y, int* points, int size, b2BodyType type);
+	PhysBody* CreateChain(int x, int y, int* points, int size, b2BodyType type, float Rest);
 	PhysBody* CreatePolygon(b2Vec2* vertices, int point, b2BodyType type);
-	PhysBody* CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2,  int count1,int count2, b2BodyType type, int x, int y);
+	PhysBody* CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2,  int count1,int count2, b2BodyType type, int x, int y, float Rest);
 	void CreateRevoluteJoint(b2Body* bodyA, b2Body* bodyB, int upperangle, int lowerangle, int pivot_x, int pivot_y);
 
 	void impulseleftkicker();
