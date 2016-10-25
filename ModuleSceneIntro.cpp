@@ -30,8 +30,9 @@ bool ModuleSceneIntro::Start()
 	cowboy_fx = App->audio->LoadFx("pinball/cowboyhit.wav");
 	hat_fx = App->audio->LoadFx("pinball/hatfx.wav");
 	barrel_fx = App->audio->LoadFx("pinball/barrelfx.wav");
+	deadcowboys_fx = App->audio->LoadFx("pinball/deadcowboysfx.wav");
 	graphics = App->textures->Load("pinball/SpriteSheet.png");
-	
+	deadcowboys = 0;
 
 	sensor = App->physics->CreateRectangleSensor(SCREEN_WIDTH / 2, SCREEN_HEIGHT, SCREEN_WIDTH, 50);
 
@@ -76,16 +77,81 @@ update_status ModuleSceneIntro::Update()
 	fVector normal(0.0f, 0.0f);
 
 	// All draw functions ------------------------------------------------------
-	p2List_item<PhysBody*>* c = circles.getFirst();
+	
+	Draw();
 
-	while(c != NULL)
-	{
-		int x, y;
-		c->data->GetPosition(x, y);
-		if(c->data->Contains(App->input->GetMouseX(), App->input->GetMouseY()))
-			App->renderer->Blit(circle, x, y, NULL, 1.0f, c->data->GetRotation());
-		c = c->next;
+	if (deadcowboys == 11) {
+		App->audio->PlayFx(deadcowboys_fx);
+		deadcowboys = 0;
+
+		RiseCowboys();
 	}
+	// ray -----------------
+	if(ray_on == true)
+	{
+		fVector destination(mouse.x-ray.x, mouse.y-ray.y);
+		destination.Normalize();
+		destination *= ray_hit;
+
+		App->renderer->DrawLine(ray.x, ray.y, ray.x + destination.x, ray.y + destination.y, 255, 255, 255);
+
+		if(normal.x != 0.0f)
+			App->renderer->DrawLine(ray.x + destination.x, ray.y + destination.y, ray.x + destination.x + normal.x * 25.0f, ray.y + destination.y + normal.y * 25.0f, 100, 255, 100);
+	}
+
+
+	return UPDATE_CONTINUE;
+}
+
+void ModuleSceneIntro::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
+{
+
+
+	if (cowboys.find(bodyA) != -1) {
+		p2List_item<PhysBody*>* cowboysbody = cowboys.getFirst();
+		int i = 0;
+		while (cowboysbody != NULL) {
+			if (cowboysbody->data == bodyA && cowboysbody->data->body->GetFixtureList()->IsSensor()==false) {
+				App->audio->PlayFx(cowboy_fx);
+				cowboysbody->data->body->GetFixtureList()->SetSensor(true) ;
+				lights[i].x = 291;
+				lights[i].y = 175;
+				lights[i].w = 17;
+				lights[i].h = 11;
+				deadcowboys++;
+				return;
+			}
+			i++;
+			cowboysbody = cowboysbody->next;
+		}
+	}
+	if (hats.find(bodyA) != -1) {
+		App->audio->PlayFx(hat_fx);
+	}
+
+	if (bodyA == leftbarrels|| bodyA == rightbarrels) {
+		App->audio->PlayFx(barrel_fx);
+	}
+
+	if (bodyA == leftflag) {
+		leftflagtex.x = 0;
+	}
+	/*
+	if(bodyA)
+	{
+		bodyA->GetPosition(x, y);
+		App->renderer->DrawCircle(x, y, 50, 100, 100, 100);
+	}
+
+	if(bodyB)
+	{
+		bodyB->GetPosition(x, y);
+		App->renderer->DrawCircle(x, y, 50, 100, 100, 100);
+	}*/
+}
+
+void ModuleSceneIntro::Draw() {
+	int x, y;
 
 	int upperrowx = 244, upperrowy = 240;
 	for (int i = 0; i <= 5; i++) {
@@ -108,13 +174,27 @@ update_status ModuleSceneIntro::Update()
 	texcoords.h = 47;
 	while (cowboysdraw != NULL)
 	{
-		int x, y;
-		cowboysdraw->data->GetPosition(x, y);
-		App->renderer->Blit(graphics, x, y, &texcoords, 1.0f);
-		cowboysdraw = cowboysdraw->next;
+		if (cowboysdraw->data->body->GetFixtureList()->IsSensor() == false) {
+			texcoords.x = 256;
+			texcoords.y = 246;
+			texcoords.w = 23;
+			texcoords.h = 47;
+			cowboysdraw->data->GetPosition(x, y);
+			App->renderer->Blit(graphics, x, y, &texcoords, 1.0f);
+			cowboysdraw = cowboysdraw->next;
+		}
+		else {
+			texcoords.x = 280;
+			texcoords.y = 246;
+			texcoords.w = 23;
+			texcoords.h = 47;
+			cowboysdraw->data->GetPosition(x, y);
+			App->renderer->Blit(graphics, x, y, &texcoords, 1.0f);
+			cowboysdraw = cowboysdraw->next;
+		}
 	}
 
-	
+
 
 	//DRAW MEXICAN HATS
 	p2List_item<PhysBody*>* hatsdraw = hats.getFirst();
@@ -124,76 +204,31 @@ update_status ModuleSceneIntro::Update()
 	texcoords.h = 32;
 	while (hatsdraw != NULL)
 	{
-	int x, y;
-	hatsdraw->data->GetPosition(x, y);
-	App->renderer->Blit(graphics, x, y, &texcoords, 1.0f);
-	hatsdraw = hatsdraw->next;
+		hatsdraw->data->GetPosition(x, y);
+		App->renderer->Blit(graphics, x, y, &texcoords, 1.0f);
+		hatsdraw = hatsdraw->next;
 	}
 
-	// ray -----------------
-	if(ray_on == true)
-	{
-		fVector destination(mouse.x-ray.x, mouse.y-ray.y);
-		destination.Normalize();
-		destination *= ray_hit;
-
-		App->renderer->DrawLine(ray.x, ray.y, ray.x + destination.x, ray.y + destination.y, 255, 255, 255);
-
-		if(normal.x != 0.0f)
-			App->renderer->DrawLine(ray.x + destination.x, ray.y + destination.y, ray.x + destination.x + normal.x * 25.0f, ray.y + destination.y + normal.y * 25.0f, 100, 255, 100);
-	}
-
-	//DRAW MAP
-
-	//App->renderer->Blit(backgroundstage, 0, 0, NULL);
-	//App->renderer->Blit(leftkicker, 247, 450, NULL);
-
-	return UPDATE_CONTINUE;
+	//DRAW FLAGS
+	leftflag->GetPosition(x, y);
+	App->renderer->Blit(graphics, x, y, &leftflagtex);
 }
 
-void ModuleSceneIntro::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
-{
-	int x, y;
 
-	//App->audio->PlayFx(bonus_fx);
 
-	if (cowboys.find(bodyA) != -1) {
-		p2List_item<PhysBody*>* cowboysbody = cowboys.getFirst();
-		int i = 0;
-		while (cowboysbody != NULL) {
-			if (cowboysbody->data == bodyA && to_delete.find(cowboysbody->data)==-1) {
-				App->audio->PlayFx(cowboy_fx);
-				to_delete.add(cowboysbody->data);//LIST TO DELETE BODIES OUTISDE WORLDSTEP
-				cowboys.del(cowboysbody);
-				lights[i].x = 291;
-				lights[i].y = 175;
-				lights[i].w = 17;
-				lights[i].h = 11;
-				return;
-			}
-			i++;
-			cowboysbody = cowboysbody->next;
-		}
+void ModuleSceneIntro::RiseCowboys() {
+	p2List_item<PhysBody*>* cowboysbody = cowboys.getFirst();
+	int i = 0;
+	while (cowboysbody != NULL) {
+		cowboysbody->data->body->GetFixtureList()->SetSensor(false);
+		lights[i].x = 291;
+		lights[i].y = 163;
+		lights[i].w = 17;
+		lights[i].h = 11;
+		deadcowboys++;
+		i++;
+		cowboysbody = cowboysbody->next;
 	}
-	if (hats.find(bodyA) != -1) {
-		App->audio->PlayFx(hat_fx);
-	}
-
-	if (bodyA == leftbarrels|| bodyA == rightbarrels) {
-		App->audio->PlayFx(barrel_fx);
-	}
-	/*
-	if(bodyA)
-	{
-		bodyA->GetPosition(x, y);
-		App->renderer->DrawCircle(x, y, 50, 100, 100, 100);
-	}
-
-	if(bodyB)
-	{
-		bodyB->GetPosition(x, y);
-		App->renderer->DrawCircle(x, y, 50, 100, 100, 100);
-	}*/
 }
 
 void ModuleSceneIntro::CreateStage() {
@@ -254,7 +289,7 @@ void ModuleSceneIntro::CreateStage() {
 		427, 545
 	};
 
-	App->physics->CreateChain(0, 0, stage, 108, b2_staticBody, 0);
+	App->physics->CreateChain(0, 0, stage, 108, b2_staticBody, 0, false);
 
 	//rightisle
 	int RightIsle[28] = {
@@ -274,7 +309,7 @@ void ModuleSceneIntro::CreateStage() {
 		494, 373
 	};
 
-	App->physics->CreateChain(0, 0, RightIsle, 28, b2_staticBody, 0);
+	App->physics->CreateChain(0, 0, RightIsle, 28, b2_staticBody, 0, false);
 
 	//cowboy figurines
 	int cowboy[18] = {
@@ -291,14 +326,14 @@ void ModuleSceneIntro::CreateStage() {
 
 	int upperrowx = 220, upperrowy = 200;
 	for (int i = 0; i <= 5; i++) {
-		cowboys.add(App->physics->CreateChain(upperrowx, upperrowy, cowboy, 18, b2_staticBody, COWBOY_REST));
+		cowboys.add(App->physics->CreateChain(upperrowx, upperrowy, cowboy, 18, b2_staticBody, COWBOY_REST, false));
 		upperrowx += 21;
 		upperrowy -= 11;
 		cowboys.getLast()->data->listener = this;
 	}
 	int bottomrowx = 260, bottomrowy = 215;
 	for (int i = 0; i <= 4; i++) {
-		cowboys.add(App->physics->CreateChain(bottomrowx, bottomrowy, cowboy, 18, b2_staticBody, COWBOY_REST));
+		cowboys.add(App->physics->CreateChain(bottomrowx, bottomrowy, cowboy, 18, b2_staticBody, COWBOY_REST, false));
 		bottomrowx += 21;
 		bottomrowy -= 11;
 		cowboys.getLast()->data->listener = this;
@@ -329,11 +364,11 @@ void ModuleSceneIntro::CreateStage() {
 		5, 13
 	};
 
-	hats.add(App->physics->CreateChain(401, 184, hat, 24, b2_staticBody, HAT_REST));
+	hats.add(App->physics->CreateChain(401, 184, hat, 24, b2_staticBody, HAT_REST, false));
 	hats.getLast()->data->listener = this;
-	hats.add(App->physics->CreateChain(396, 142, hat, 24, b2_staticBody, HAT_REST));
+	hats.add(App->physics->CreateChain(396, 142, hat, 24, b2_staticBody, HAT_REST, false));
 	hats.getLast()->data->listener = this;
-	hats.add(App->physics->CreateChain(455, 160, hat, 24, b2_staticBody, HAT_REST));
+	hats.add(App->physics->CreateChain(455, 160, hat, 24, b2_staticBody, HAT_REST, false));
 	hats.getLast()->data->listener = this;
 
 	//leftbarrels
@@ -371,7 +406,7 @@ void ModuleSceneIntro::CreateStage() {
 		149, 362
 	};
 
-	leftbarrels = App->physics->CreateChain(0, 0, leftbarrelcoords, 60, b2_staticBody, BARRELS_REST);
+	leftbarrels = App->physics->CreateChain(0, 0, leftbarrelcoords, 60, b2_staticBody, BARRELS_REST, false);
 	leftbarrels->listener = this;
 
 	int rightbarrelcoords[42] = {
@@ -397,7 +432,34 @@ void ModuleSceneIntro::CreateStage() {
 		490, 372,
 		454, 389
 	};
-
-	rightbarrels = App->physics->CreateChain(0, 0, rightbarrelcoords, 42, b2_staticBody, BARRELS_REST);
+	rightbarrels = App->physics->CreateChain(0, 0, rightbarrelcoords, 42, b2_staticBody, BARRELS_REST, false);
 	rightbarrels->listener = this;
+
+	//FLAGS
+
+	int leftflagcoords[8]{
+		0, 0,
+		-10, -2,
+		-34, 23,
+		9, 3
+	};
+	leftflag = App->physics->CreateChain(453, 114, leftflagcoords, 8, b2_staticBody, 0, true);
+	leftflag->listener = this;
+	leftflagtex.x = 256;
+	leftflagtex.y = 196;
+	leftflagtex.w = 76;
+	leftflagtex.h = 26;
+	int middleflagcoords[6] = {
+		0, 0,
+		-12, 28,
+		22, 6
+	};
+	midleflag = App->physics->CreateChain(475, 120, middleflagcoords, 6, b2_staticBody, 0, true);
+	int rightflagcoords[6] = {
+		0, 0,
+		-4, 32,
+		23, 6
+	};
+	rightflag = App->physics->CreateChain(509, 130, rightflagcoords, 6, b2_staticBody, 0, true);
+
 }

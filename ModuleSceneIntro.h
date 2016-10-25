@@ -22,14 +22,24 @@ public:
 	update_status Update();
 	bool CleanUp();
 	void OnCollision(PhysBody* bodyA, PhysBody* bodyB);
+	void Draw();
+	void RiseCowboys();
 	p2List<PhysBody*> to_delete;//LIST TO DELETE BODIES OUTISDE WORLDSTEP
 
 public:
 	p2List<PhysBody*> circles;
 	p2List<PhysBody*> cowboys;
+	uint deadcowboys;
 	p2List<PhysBody*> hats;
 	PhysBody* leftbarrels;
 	PhysBody* rightbarrels;
+
+	PhysBody* leftflag;
+	SDL_Rect leftflagtex;
+	PhysBody* midleflag;
+	SDL_Rect midleflagtex;
+	PhysBody* rightflag;
+	SDL_Rect rightflagtex;
 
 	SDL_Rect texcoords;
 	PhysBody* sensor;
@@ -38,10 +48,13 @@ public:
 	SDL_Texture* circle;
 	SDL_Texture* graphics;
 	SDL_Rect lights[11];
+
 	uint bonus_fx;
 	uint cowboy_fx;
 	uint hat_fx;
 	uint barrel_fx;
+	uint deadcowboys_fx;
+
 	p2Point<int> ray;
 	bool ray_on;
 };

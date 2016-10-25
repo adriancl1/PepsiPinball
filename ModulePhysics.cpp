@@ -135,7 +135,7 @@ PhysBody* ModulePhysics::CreateRectangleSensor(int x, int y, int width, int heig
 	return pbody;
 }
 
-PhysBody* ModulePhysics::CreateChain(int x, int y, int* points, int size, b2BodyType type, float Rest)
+PhysBody* ModulePhysics::CreateChain(int x, int y, int* points, int size, b2BodyType type, float Rest, bool isSensor)
 {
 	b2BodyDef body;
 	body.type = type;
@@ -157,6 +157,7 @@ PhysBody* ModulePhysics::CreateChain(int x, int y, int* points, int size, b2Body
 	b2FixtureDef fixture;
 	fixture.shape = &shape;
 	fixture.restitution = Rest;
+	fixture.isSensor = isSensor;
 	b->CreateFixture(&fixture);
 
 	delete p;
@@ -186,13 +187,15 @@ PhysBody* ModulePhysics::CreatePolygons(b2Vec2* vertices1, b2Vec2* vertices2, in
 	polygon1fix.shape = &polygon1shape;
 	b->CreateFixture(&polygon1fix);
 
-	b2PolygonShape polygon2shape;
-	polygon2shape.Set(vertices2, count2);
-	b2FixtureDef polygon2fix;
-	polygon2fix.density = 1.0f;
-	polygon2fix.restitution = rest;
-	polygon2fix.shape = &polygon2shape;
-	b->CreateFixture(&polygon2fix);
+	if (vertices2 != NULL) {
+		b2PolygonShape polygon2shape;
+		polygon2shape.Set(vertices2, count2);
+		b2FixtureDef polygon2fix;
+		polygon2fix.density = 1.0f;
+		polygon2fix.restitution = rest;
+		polygon2fix.shape = &polygon2shape;
+		b->CreateFixture(&polygon2fix);
+	}
 
 	PhysBody* pbody = new PhysBody();
 	pbody->body = b;

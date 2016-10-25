@@ -109,7 +109,7 @@ bool ModulePlayer::Start()
 	rightkicker2.section.h = 26;
 
 	//TEXTURES LOAD
-	underball = App->textures->Load("pinball/UnderBall.png");
+	underball = App->textures->Load("pinball/template.png");
 	overball = App->textures->Load("pinball/OverBall.png");
 	graphics = App->textures->Load("pinball/SpriteSheet.png");
 
