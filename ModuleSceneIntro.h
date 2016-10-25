@@ -3,6 +3,7 @@
 #include "p2List.h"
 #include "p2Point.h"
 #include "Globals.h"
+#include "Animation.h"
 
 class PhysBody;
 
@@ -51,6 +52,8 @@ public:
 	SDL_Texture* circle;
 	SDL_Texture* graphics;
 	SDL_Rect lights[11];
+
+	Animation redwindows;
 
 	uint bonus_fx;
 	uint cowboy_fx;

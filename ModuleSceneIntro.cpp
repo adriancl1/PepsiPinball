@@ -38,6 +38,17 @@ bool ModuleSceneIntro::Start()
 	middleon = false;
 	righton = false;
 
+	redwindows.PushBack({ 0,0,312,162 });
+	redwindows.PushBack({ 0,0,0,0 });
+	redwindows.PushBack({ 0,0,312,162 });
+	redwindows.PushBack({ 0,0,0,0 });
+	redwindows.PushBack({ 0,0,312,162 });
+	redwindows.PushBack({ 0,0,0,0 });
+	redwindows.PushBack({ 0,0,312,162 });
+	redwindows.PushBack({ 0,0,0,0 });
+	redwindows.loop = true;
+	redwindows.speed = 0.15f;
+
 	sensor = App->physics->CreateRectangleSensor(SCREEN_WIDTH / 2, SCREEN_HEIGHT, SCREEN_WIDTH, 50);
 
 	CreateStage();
@@ -87,13 +98,16 @@ update_status ModuleSceneIntro::Update()
 	//COWBOYS DEATHS AND RESURRECTION
 	if (deadcowboys == 11 && last_time==0) {
 		App->audio->PlayFx(deadcowboys_fx);
-		deadcowboys = 0;
 		last_time = SDL_GetTicks();
 		App->player->AddPoints(25000);
 	}
-	if ((current_time > last_time + 6000) && deadcowboys==0) {
+	if ((current_time > last_time + 6000) && deadcowboys==11) {
 		RiseCowboys();
+		deadcowboys = 0;
 		last_time = 0;
+	}
+	else if (deadcowboys == 11 && (current_time <= last_time + 6000)) {
+		App->renderer->Blit(graphics, 63, 61, &redwindows.GetCurrentFrame());
 	}
 
 	//FLAGS CHECK
