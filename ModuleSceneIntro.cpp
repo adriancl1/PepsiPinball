@@ -6,6 +6,7 @@
 #include "ModuleTextures.h"
 #include "ModuleAudio.h"
 #include "ModulePhysics.h"
+#include "ModulePlayer.h"
 
 ModuleSceneIntro::ModuleSceneIntro(Application* app, bool start_enabled) : Module(app, start_enabled)
 {
@@ -33,6 +34,9 @@ bool ModuleSceneIntro::Start()
 	deadcowboys_fx = App->audio->LoadFx("pinball/deadcowboysfx.wav");
 	graphics = App->textures->Load("pinball/SpriteSheet.png");
 	deadcowboys = 0;
+	lefton = false;
+	middleon = false;
+	righton = false;
 
 	sensor = App->physics->CreateRectangleSensor(SCREEN_WIDTH / 2, SCREEN_HEIGHT, SCREEN_WIDTH, 50);
 
@@ -52,7 +56,7 @@ bool ModuleSceneIntro::CleanUp()
 // Update: draw background
 update_status ModuleSceneIntro::Update()
 {
-	
+	current_time = SDL_GetTicks();
 
 	if(App->input->GetKey(SDL_SCANCODE_SPACE) == KEY_DOWN)
 	{
@@ -80,11 +84,32 @@ update_status ModuleSceneIntro::Update()
 	
 	Draw();
 
-	if (deadcowboys == 11) {
+	//COWBOYS DEATHS AND RESURRECTION
+	if (deadcowboys == 11 && last_time==0) {
 		App->audio->PlayFx(deadcowboys_fx);
 		deadcowboys = 0;
-
+		last_time = SDL_GetTicks();
+		App->player->AddPoints(25000);
+	}
+	if ((current_time > last_time + 6000) && deadcowboys==0) {
 		RiseCowboys();
+		last_time = 0;
+	}
+
+	//FLAGS CHECK
+	if (lefton == true && middleon == true && righton == true && last_time == 0) {
+		leftflagtex.y = 0;
+		midleflagtex.y = 74;
+		rightflagtex.y = 158;
+		last_time = SDL_GetTicks();
+		App->player->Addmultiply();
+		App->player->AddPoints(1000);
+	}
+	if (lefton == true && middleon == true && righton == true && (current_time > last_time + 2000)) {
+		lefton = false;
+		righton = false;
+		middleon = false;
+		last_time = 0;
 	}
 	// ray -----------------
 	if(ray_on == true)
@@ -106,7 +131,6 @@ update_status ModuleSceneIntro::Update()
 void ModuleSceneIntro::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
 {
 
-
 	if (cowboys.find(bodyA) != -1) {
 		p2List_item<PhysBody*>* cowboysbody = cowboys.getFirst();
 		int i = 0;
@@ -119,6 +143,7 @@ void ModuleSceneIntro::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
 				lights[i].w = 17;
 				lights[i].h = 11;
 				deadcowboys++;
+				App->player->AddPoints(250);
 				return;
 			}
 			i++;
@@ -127,14 +152,25 @@ void ModuleSceneIntro::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
 	}
 	if (hats.find(bodyA) != -1) {
 		App->audio->PlayFx(hat_fx);
+		App->player->AddPoints(150);
 	}
 
 	if (bodyA == leftbarrels|| bodyA == rightbarrels) {
 		App->audio->PlayFx(barrel_fx);
+		App->player->AddPoints(100);
 	}
 
-	if (bodyA == leftflag) {
-		leftflagtex.x = 0;
+	if (bodyA == leftflag && lefton==false) {
+		leftflagtex.y = 37;
+		lefton = true;
+	}
+	if (bodyA == midleflag && middleon==false) {
+		midleflagtex.y = 116;
+		middleon = true;
+	}
+	if (bodyA == rightflag && righton==false) {
+		rightflagtex.y = 204;
+		righton = true;
 	}
 	/*
 	if(bodyA)
@@ -168,10 +204,6 @@ void ModuleSceneIntro::Draw() {
 
 	//DRAW COWBOYS UP OR DOWN
 	p2List_item<PhysBody*>* cowboysdraw = cowboys.getFirst();
-	texcoords.x = 256;
-	texcoords.y = 246;
-	texcoords.w = 23;
-	texcoords.h = 47;
 	while (cowboysdraw != NULL)
 	{
 		if (cowboysdraw->data->body->GetFixtureList()->IsSensor() == false) {
@@ -211,7 +243,13 @@ void ModuleSceneIntro::Draw() {
 
 	//DRAW FLAGS
 	leftflag->GetPosition(x, y);
-	App->renderer->Blit(graphics, x, y, &leftflagtex);
+	App->renderer->Blit(graphics, x-45, y-5, &leftflagtex);
+	midleflag->GetPosition(x, y);
+	App->renderer->Blit(graphics, x-20, y-3, &midleflagtex);
+	rightflag->GetPosition(x, y);
+	App->renderer->Blit(graphics, x-9, y-4, &rightflagtex);
+
+	
 }
 
 
@@ -225,7 +263,7 @@ void ModuleSceneIntro::RiseCowboys() {
 		lights[i].y = 163;
 		lights[i].w = 17;
 		lights[i].h = 11;
-		deadcowboys++;
+		deadcowboys = 0;
 		i++;
 		cowboysbody = cowboysbody->next;
 	}
@@ -445,21 +483,32 @@ void ModuleSceneIntro::CreateStage() {
 	};
 	leftflag = App->physics->CreateChain(453, 114, leftflagcoords, 8, b2_staticBody, 0, true);
 	leftflag->listener = this;
-	leftflagtex.x = 256;
-	leftflagtex.y = 196;
-	leftflagtex.w = 76;
-	leftflagtex.h = 26;
+	leftflagtex.x = 313;
+	leftflagtex.y = 0;
+	leftflagtex.w = 64;
+	leftflagtex.h = 36;
 	int middleflagcoords[6] = {
 		0, 0,
 		-12, 28,
 		22, 6
 	};
 	midleflag = App->physics->CreateChain(475, 120, middleflagcoords, 6, b2_staticBody, 0, true);
+	midleflag->listener = this;
+	midleflagtex.x = 313;
+	midleflagtex.y = 74;
+	midleflagtex.w = 50;
+	midleflagtex.h = 41;
 	int rightflagcoords[6] = {
 		0, 0,
 		-4, 32,
 		23, 6
 	};
 	rightflag = App->physics->CreateChain(509, 130, rightflagcoords, 6, b2_staticBody, 0, true);
+	rightflag->listener = this;
+	rightflagtex.x = 331;
+	rightflagtex.y = 158;
+	rightflagtex.w = 37;
+	rightflagtex.h = 45;
 
+	
 }

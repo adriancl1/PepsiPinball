@@ -6,6 +6,7 @@
 #include "ModuleTextures.h"
 #include "ModuleRender.h"
 #include "ModuleAudio.h"
+#include "ModuleWindow.h"
 
 
 ModulePlayer::ModulePlayer(Application* app, bool start_enabled) : Module(app, start_enabled)
@@ -22,8 +23,12 @@ bool ModulePlayer::Start()
 
 	death_fx =App->audio->LoadFx("pinball/deathfx.wav");
 	kicker_fx = App->audio->LoadFx("pinball/kickerfx.wav");
+	multiply = 1;
+	points = 0;
+	lifes = 5;
 	//ball
 	ball.body = App->physics->CreateCircle(632, 400, 9, 0, true, b2_dynamicBody);
+	ball.body->listener = this;
 	ball.section.x = 256;
 	ball.section.y = 163;
 	ball.section.w = 34;
@@ -108,8 +113,16 @@ bool ModulePlayer::Start()
 	rightkicker2.section.w = 76;
 	rightkicker2.section.h = 26;
 
+	//MULTIPLIER LIGHTS
+	for (int i = 0; i < 6; i++) {
+		multipliers[i].x = 256;
+		multipliers[i].y = 327;
+		multipliers[i].w = 31;
+		multipliers[i].h = 21;
+	}
+
 	//TEXTURES LOAD
-	underball = App->textures->Load("pinball/template.png");
+	underball = App->textures->Load("pinball/UnderBall.png");
 	overball = App->textures->Load("pinball/OverBall.png");
 	graphics = App->textures->Load("pinball/SpriteSheet.png");
 
@@ -147,10 +160,15 @@ update_status ModulePlayer::Update()
 		rightkicker2.body->Turn(360);
 		App->audio->PlayFx(kicker_fx);
 	}
-	//Check if Ball died
+	//Check if Ball died and reset multiplier
 	if (bally >= 520) {
 		App->physics->DestroyBody(ball.body->body);
 		ball.body = nullptr;
+		lifes--;
+		multiply = 1;
+		for (int i = 0; i < 6; i++) {
+			multipliers[i].x = 256;
+		}
 		App->audio->PlayFx(death_fx);
 	}
 
@@ -158,6 +176,15 @@ update_status ModulePlayer::Update()
 	
 	App->renderer->Blit(underball, 0, 0, NULL);
 
+	//DRAW MULTIPLIERS
+	App->renderer->Blit(graphics, 306, 463, &multipliers[0]);
+	App->renderer->Blit(graphics, 306, 428, &multipliers[1]);
+	App->renderer->Blit(graphics, 264, 418, &multipliers[2]);
+	App->renderer->Blit(graphics, 347, 418, &multipliers[3]);
+	App->renderer->Blit(graphics, 205, 329, &multipliers[4]);
+	App->renderer->Blit(graphics, 444, 329, &multipliers[5]);
+
+	//DRAW
 	App->renderer->Blit(graphics, ballx-4.5, bally-4.5, &ball.section, 1.0f);
 	
 	leftkicker.body->GetPosition(x, y);
@@ -171,8 +198,25 @@ update_status ModulePlayer::Update()
 
 	App->renderer->Blit(overball, 0, 0, NULL);
 
+	 
+	char title[200];
+	sprintf_s(title, "PepsiPinball   Points: %i, Balls: %i", points, lifes);
+	App->window->SetTitle(title);
 	return UPDATE_CONTINUE;
 }
 
+void ModulePlayer::Addmultiply() {
+	if (multiply < 7) {
+		multipliers[multiply - 1].x = 288;
+		multiply++;
+	}
+}
 
+void ModulePlayer::AddPoints(int add) {
+	points += add*multiply;
+}
+
+void ModulePlayer::OnCollision(PhysBody* bodyA, PhysBody* bodyB) {
+
+}
 

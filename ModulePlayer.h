@@ -26,8 +26,13 @@ public:
 	bool Start();
 	update_status Update();
 	bool CleanUp();
+	void Addmultiply();
+	void AddPoints(int add);
+	void OnCollision(PhysBody* bodyA, PhysBody* bodyB);
 
 	Object ball;
+
+	SDL_Rect multipliers[6];
 
 	Object leftkicker;
 	PhysBody* leftwheel;
@@ -45,6 +50,9 @@ public:
 	uint death_fx;
 	uint kicker_fx;
 
+	int multiply;
+	int lifes;
+	int points;
 	int ballx;
 	int bally;
 

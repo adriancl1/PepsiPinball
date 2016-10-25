@@ -36,10 +36,13 @@ public:
 
 	PhysBody* leftflag;
 	SDL_Rect leftflagtex;
+	bool lefton;
 	PhysBody* midleflag;
 	SDL_Rect midleflagtex;
+	bool middleon;
 	PhysBody* rightflag;
 	SDL_Rect rightflagtex;
+	bool righton;
 
 	SDL_Rect texcoords;
 	PhysBody* sensor;
@@ -54,6 +57,9 @@ public:
 	uint hat_fx;
 	uint barrel_fx;
 	uint deadcowboys_fx;
+
+	int current_time;
+	int last_time;
 
 	p2Point<int> ray;
 	bool ray_on;
