@@ -32,6 +32,8 @@ bool ModuleSceneIntro::Start()
 	hat_fx = App->audio->LoadFx("pinball/hatfx.wav");
 	barrel_fx = App->audio->LoadFx("pinball/barrelfx.wav");
 	deadcowboys_fx = App->audio->LoadFx("pinball/deadcowboysfx.wav");
+	cart_fx = App->audio->LoadFx("pinball/cartfx.wav");
+	tunnel_fx = App->audio->LoadFx("pinball/tunnelfx.wav");
 	graphics = App->textures->Load("pinball/SpriteSheet.png");
 	deadcowboys = 0;
 	lefton = false;
@@ -48,6 +50,11 @@ bool ModuleSceneIntro::Start()
 	redwindows.PushBack({ 0,0,0,0 });
 	redwindows.loop = true;
 	redwindows.speed = 0.15f;
+
+	PepsiTitle.PushBack({ 0, 285, 255, 121 });
+	PepsiTitle.PushBack({ 0,0,0,0 });
+	PepsiTitle.loop = true;
+	PepsiTitle.speed = 0.1f;
 
 	sensor = App->physics->CreateRectangleSensor(SCREEN_WIDTH / 2, SCREEN_HEIGHT, SCREEN_WIDTH, 50);
 
@@ -108,22 +115,23 @@ update_status ModuleSceneIntro::Update()
 	}
 	else if (deadcowboys == 11 && (current_time <= last_time + 6000)) {
 		App->renderer->Blit(graphics, 63, 61, &redwindows.GetCurrentFrame());
+		App->renderer->Blit(graphics, 86, 12, &PepsiTitle.GetCurrentFrame());
 	}
 
 	//FLAGS CHECK
-	if (lefton == true && middleon == true && righton == true && last_time == 0) {
+	if (lefton == true && middleon == true && righton == true && flag_time == 0) {
 		leftflagtex.y = 0;
 		midleflagtex.y = 74;
 		rightflagtex.y = 158;
-		last_time = SDL_GetTicks();
+		flag_time = SDL_GetTicks();
 		App->player->Addmultiply();
 		App->player->AddPoints(1000);
 	}
-	if (lefton == true && middleon == true && righton == true && (current_time > last_time + 2000)) {
+	if (lefton == true && middleon == true && righton == true && (current_time > flag_time + 2000)) {
 		lefton = false;
 		righton = false;
 		middleon = false;
-		last_time = 0;
+		flag_time = 0;
 	}
 	// ray -----------------
 	if(ray_on == true)
@@ -186,18 +194,16 @@ void ModuleSceneIntro::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
 		rightflagtex.y = 204;
 		righton = true;
 	}
-	/*
-	if(bodyA)
-	{
-		bodyA->GetPosition(x, y);
-		App->renderer->DrawCircle(x, y, 50, 100, 100, 100);
+	if (bodyA == cartsensor && cartsensor->body->IsAwake()) {
+		App->audio->PlayFx(cart_fx);
+		cartsensor->body->SetAwake(false);
+		App->player->AddPoints(25000);
 	}
-
-	if(bodyB)
-	{
-		bodyB->GetPosition(x, y);
-		App->renderer->DrawCircle(x, y, 50, 100, 100, 100);
-	}*/
+	if (bodyA == tunnelsensor && tunnelsensor->body->IsAwake()) {
+		App->audio->PlayFx(tunnel_fx);
+		tunnelsensor->body->SetAwake(false);
+		App->player->AddPoints(50000);
+	}
 }
 
 void ModuleSceneIntro::Draw() {
@@ -524,5 +530,22 @@ void ModuleSceneIntro::CreateStage() {
 	rightflagtex.w = 37;
 	rightflagtex.h = 45;
 
+	int cartsensorcoords[8]{
+		0,0,
+		30,0,
+		30,3,
+		0,3
+	};
+	cartsensor = App->physics->CreateChain(170, 259, cartsensorcoords, 8, b2_staticBody, 0, true);
+	cartsensor->listener = this;
+
+	int tunnelsensorcoords[8]{
+		0,0,
+		35,0,
+		35,3,
+		0,3
+	};
+	tunnelsensor = App->physics->CreateChain(525, 239, tunnelsensorcoords, 8, b2_staticBody, 0, true);
+	tunnelsensor->listener = this;
 	
 }

@@ -71,7 +71,7 @@ PhysBody* ModulePhysics::CreateCircle(int x, int y, int radius, float Rest,bool 
 	shape.m_radius = PIXEL_TO_METERS(radius);
 	b2FixtureDef fixture;
 	fixture.shape = &shape;
-	fixture.density = 1.0f;
+	fixture.density = 0.8f;
 	fixture.restitution = Rest;
 	b->CreateFixture(&fixture);
 
@@ -344,6 +344,9 @@ bool ModulePhysics::CleanUp()
 	LOG("Destroying physics world");
 
 	// Delete the whole physics world!
+	for (b2Body* b = world->GetBodyList(); b; b = b->GetNext()) {
+		delete b->GetUserData();//DELETE PHYSBODY*  OF EACH BODY SO WE DON'T GET MEMORY LEAKS!
+	}
 	delete world;
 
 	return true;

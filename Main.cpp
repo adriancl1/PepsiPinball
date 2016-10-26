@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include "Application.h"
 #include "Globals.h"
+#include "MemLeaks.h"
+#include <crtdbg.h>
 
 #include "SDL/include/SDL.h"
 #pragma comment( lib, "SDL/libx86/SDL2.lib" )
@@ -17,7 +19,12 @@ enum main_states
 
 int main(int argc, char ** argv)
 {
+
 	LOG("Starting game '%s'...", TITLE);
+
+	ReportMemoryLeaks();
+	//_CrtSetBreakAlloc(191);
+
 
 	int main_return = EXIT_FAILURE;
 	main_states state = MAIN_CREATION;

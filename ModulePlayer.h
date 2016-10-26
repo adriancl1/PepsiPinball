@@ -2,6 +2,7 @@
 #include "Module.h"
 #include "Globals.h"
 #include "p2Point.h"
+#include "Animation.h"
 
 #include "SDL\include\SDL.h"
 
@@ -33,6 +34,7 @@ public:
 	Object ball;
 
 	SDL_Rect multipliers[6];
+	SDL_Rect ballcount;
 
 	Object leftkicker;
 	PhysBody* leftwheel;
@@ -47,14 +49,21 @@ public:
 	SDL_Texture* overball;
 	SDL_Texture* graphics;
 
+	Animation horse;
+
 	uint death_fx;
 	uint kicker_fx;
+	uint horse_fx;
 
 	int multiply;
 	int lifes;
 	int points;
+	int score1;
 	int ballx;
 	int bally;
+	int current_time;
+	int last_time;
+	int death_time;
 
 public:
 

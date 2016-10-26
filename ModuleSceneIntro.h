@@ -7,9 +7,9 @@
 
 class PhysBody;
 
-#define HAT_REST 0.5
-#define COWBOY_REST 0.2
-#define BARRELS_REST 0.2
+#define HAT_REST 1
+#define COWBOY_REST 1
+#define BARRELS_REST 0.8
 
 
 class ModuleSceneIntro : public Module
@@ -45,6 +45,9 @@ public:
 	SDL_Rect rightflagtex;
 	bool righton;
 
+	PhysBody* cartsensor;
+	PhysBody* tunnelsensor;
+
 	SDL_Rect texcoords;
 	PhysBody* sensor;
 	bool sensed;
@@ -54,15 +57,19 @@ public:
 	SDL_Rect lights[11];
 
 	Animation redwindows;
+	Animation PepsiTitle;
 
 	uint bonus_fx;
 	uint cowboy_fx;
 	uint hat_fx;
 	uint barrel_fx;
 	uint deadcowboys_fx;
+	uint cart_fx;
+	uint tunnel_fx;
 
 	int current_time;
 	int last_time;
+	int flag_time;
 
 	p2Point<int> ray;
 	bool ray_on;
