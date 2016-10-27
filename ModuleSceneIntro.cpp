@@ -56,7 +56,6 @@ bool ModuleSceneIntro::Start()
 	PepsiTitle.loop = true;
 	PepsiTitle.speed = 0.1f;
 
-	sensor = App->physics->CreateRectangleSensor(SCREEN_WIDTH / 2, SCREEN_HEIGHT, SCREEN_WIDTH, 50);
 
 	CreateStage();
 	
@@ -438,8 +437,8 @@ void ModuleSceneIntro::CreateStage() {
 	//leftbarrels
 
 	int leftbarrelcoords[12] = {
-		149, 371,
-		232, 410,
+		149, 380,
+		232, 430,
 		232, 386,
 		214, 378,
 		208, 348,
@@ -450,7 +449,7 @@ void ModuleSceneIntro::CreateStage() {
 	leftbarrels->listener = this;
 
 	int rightbarrelcoords[16] = {
-		414, 405,
+		414, 420,
 		494, 371,
 		510, 343,
 		470, 352,
