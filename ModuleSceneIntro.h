@@ -9,7 +9,7 @@ class PhysBody;
 
 #define HAT_REST 1
 #define COWBOY_REST 1
-#define BARRELS_REST 0.8
+#define BARRELS_REST 1
 
 
 class ModuleSceneIntro : public Module
@@ -25,7 +25,6 @@ public:
 	void OnCollision(PhysBody* bodyA, PhysBody* bodyB);
 	void Draw();
 	void RiseCowboys();
-	p2List<PhysBody*> to_delete;//LIST TO DELETE BODIES OUTISDE WORLDSTEP
 
 public:
 	p2List<PhysBody*> circles;
@@ -70,6 +69,7 @@ public:
 	int current_time;
 	int last_time;
 	int flag_time;
+	int sensor_time;
 
 	p2Point<int> ray;
 	bool ray_on;

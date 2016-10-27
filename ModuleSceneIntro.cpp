@@ -98,10 +98,6 @@ update_status ModuleSceneIntro::Update()
 
 	fVector normal(0.0f, 0.0f);
 
-	// All draw functions ------------------------------------------------------
-	
-	Draw();
-
 	//COWBOYS DEATHS AND RESURRECTION
 	if (deadcowboys == 11 && last_time==0) {
 		App->audio->PlayFx(deadcowboys_fx);
@@ -132,6 +128,14 @@ update_status ModuleSceneIntro::Update()
 		righton = false;
 		middleon = false;
 		flag_time = 0;
+	}
+
+	//SENSOR CHECKS TO AWAKE THEM
+	if ((tunnelsensor->body->IsAwake()==false && (current_time > sensor_time+2000))) {
+		tunnelsensor->body->SetAwake(true);
+	}
+	if ((cartsensor->body->IsAwake() == false && (current_time > sensor_time + 2000))) {
+		cartsensor->body->SetAwake(true);
 	}
 	// ray -----------------
 	if(ray_on == true)
@@ -198,11 +202,13 @@ void ModuleSceneIntro::OnCollision(PhysBody* bodyA, PhysBody* bodyB)
 		App->audio->PlayFx(cart_fx);
 		cartsensor->body->SetAwake(false);
 		App->player->AddPoints(25000);
+		sensor_time = SDL_GetTicks();
 	}
 	if (bodyA == tunnelsensor && tunnelsensor->body->IsAwake()) {
 		App->audio->PlayFx(tunnel_fx);
 		tunnelsensor->body->SetAwake(false);
 		App->player->AddPoints(50000);
+		sensor_time = SDL_GetTicks();
 	}
 }
 
@@ -431,66 +437,29 @@ void ModuleSceneIntro::CreateStage() {
 
 	//leftbarrels
 
-	int leftbarrelcoords[60] = {
-		148, 373,
-		149, 378,
-		157, 382,
-		165, 382,
-		173, 381,
-		177, 385,
-		177, 392,
-		179, 397,
-		189, 399,
-		198, 399,
-		202, 402,
-		205, 409,
-		215, 412,
-		227, 412,
-		231, 405,
-		231, 391,
-		228, 383,
-		220, 380,
-		209, 380,
-		209, 372,
-		209, 357,
-		206, 350,
-		197, 347,
-		187, 349,
-		180, 356,
-		172, 351,
-		164, 350,
-		154, 351,
-		149, 357,
-		149, 362
+	int leftbarrelcoords[12] = {
+		149, 371,
+		232, 410,
+		232, 386,
+		214, 378,
+		208, 348,
+		151, 357
 	};
 
-	leftbarrels = App->physics->CreateChain(0, 0, leftbarrelcoords, 60, b2_staticBody, BARRELS_REST, false);
+	leftbarrels = App->physics->CreateChain(0, 0, leftbarrelcoords, 12, b2_staticBody, BARRELS_REST, false);
 	leftbarrels->listener = this;
 
-	int rightbarrelcoords[42] = {
-		413, 407,
-		411, 399,
-		411, 390,
-		414, 382,
-		419, 379,
-		427, 378,
-		436, 379,
-		437, 373,
-		440, 367,
-		447, 365,
-		456, 365,
-		463, 368,
-		464, 360,
-		466, 354,
-		471, 351,
-		479, 350,
-		487, 352,
-		492, 358,
-		493, 367,
-		490, 372,
-		454, 389
+	int rightbarrelcoords[16] = {
+		414, 405,
+		494, 371,
+		510, 343,
+		470, 352,
+		463, 362,
+		444, 365,
+		428, 378,
+		413, 383
 	};
-	rightbarrels = App->physics->CreateChain(0, 0, rightbarrelcoords, 42, b2_staticBody, BARRELS_REST, false);
+	rightbarrels = App->physics->CreateChain(0, 0, rightbarrelcoords, 16, b2_staticBody, BARRELS_REST, false);
 	rightbarrels->listener = this;
 
 	//FLAGS
@@ -530,11 +499,12 @@ void ModuleSceneIntro::CreateStage() {
 	rightflagtex.w = 37;
 	rightflagtex.h = 45;
 
+	//SENSORS
 	int cartsensorcoords[8]{
 		0,0,
-		30,0,
-		30,3,
-		0,3
+		25,-15,
+		25,-10,
+		0,5
 	};
 	cartsensor = App->physics->CreateChain(170, 259, cartsensorcoords, 8, b2_staticBody, 0, true);
 	cartsensor->listener = this;

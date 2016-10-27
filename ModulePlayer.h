@@ -8,7 +8,7 @@
 
 class PhysBody;
 
-#define KICKER_REST 0.05
+#define KICKER_REST 0
 struct Object {
 
 	SDL_Rect section;
@@ -54,6 +54,7 @@ public:
 	uint death_fx;
 	uint kicker_fx;
 	uint horse_fx;
+	uint start_fx;
 
 	int multiply;
 	int lifes;

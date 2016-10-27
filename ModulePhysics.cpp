@@ -331,8 +331,7 @@ update_status ModulePhysics::PostUpdate()
 		mouse_joint = nullptr;
 		mousein = false;
 	}
-	
-	SweapBodies();
+
 
 	return UPDATE_CONTINUE;
 }
@@ -437,11 +436,3 @@ void ModulePhysics::DestroyBody(b2Body* bodytodestroy) {
 	world->DestroyBody(bodytodestroy);
 }
 
-void ModulePhysics::SweapBodies() {
-	p2List_item<PhysBody*>* scenebodies = App->scene_intro->to_delete.getFirst();
-	if (scenebodies != NULL) {
-		world->DestroyBody(scenebodies->data->body);
-		App->scene_intro->to_delete.del(scenebodies);
-		scenebodies = scenebodies->next;
-	}
-}

@@ -7,7 +7,7 @@
 #include "ModuleRender.h"
 #include "ModuleAudio.h"
 #include "ModuleWindow.h"
-
+#include "ModuleSceneIntro.h"
 
 ModulePlayer::ModulePlayer(Application* app, bool start_enabled) : Module(app, start_enabled)
 {
@@ -24,13 +24,13 @@ bool ModulePlayer::Start()
 	death_fx =App->audio->LoadFx("pinball/deathfx.wav");
 	kicker_fx = App->audio->LoadFx("pinball/kickerfx.wav");
 	horse_fx = App->audio->LoadFx("pinball/horsefx.wav");
+	start_fx=App->audio->LoadFx("pinball/startfx.wav");
+	App->audio->PlayMusic("pinball/theme.ogg");
+	App->audio->PlayFx(start_fx);
 	multiply = 1;
 	points = 0;
 	lifes = 5;
 	score1 = 0;
-	//ball
-	ball.body = App->physics->CreateCircle(632, 400, 9, 0.5, true, b2_dynamicBody);
-	ball.body->listener = this;
 	ball.section.x = 256;
 	ball.section.y = 163;
 	ball.section.w = 34;
@@ -57,7 +57,7 @@ bool ModulePlayer::Start()
 
 	leftkicker.body = App->physics->CreatePolygons(upperleftvertices, bottomleftvertices, 6, 6, b2_dynamicBody, 300, 470, KICKER_REST);
 	leftwheel=App->physics->CreateCircle(257, 500, 9, 0,false, b2_staticBody);
-	App->physics->CreateRevoluteJoint(leftkicker.body->body, leftwheel->body, 0, -23, 13, 0);
+	App->physics->CreateRevoluteJoint(leftkicker.body->body, leftwheel->body, 11, -20, 13, 0);
 
 	leftkicker.section.x = 256;
 	leftkicker.section.y = 221;
@@ -81,8 +81,8 @@ bool ModulePlayer::Start()
 	bottomrightvertices[5].Set(0, 0);
 
 	rightkicker.body = App->physics->CreatePolygons(upperrightvertices, bottomrightvertices, 6, 6, b2_dynamicBody, 400, 500, KICKER_REST);
-	rightwheel = App->physics->CreateCircle(390, 500, 9, 0,false, b2_staticBody);
-	App->physics->CreateRevoluteJoint(rightkicker.body->body,rightwheel->body, 23, -10,-13,0);
+	rightwheel = App->physics->CreateCircle(389, 500, 9, 0,false, b2_staticBody);
+	App->physics->CreateRevoluteJoint(rightkicker.body->body,rightwheel->body, 20, -11,-13,0);
 
 	rightkicker.section.x = 256;
 	rightkicker.section.y = 196;
@@ -94,7 +94,7 @@ bool ModulePlayer::Start()
 	b2Vec2 upperrightvertices2[6];
 	upperrightvertices2[0].Set(0, 0);
 	upperrightvertices2[1].Set(0, -0.15);
-	upperrightvertices2[2].Set(0.114, -0.20);
+	upperrightvertices2[2].Set(0, -0.20);
 	upperrightvertices2[3].Set(-1.3, -0.12);
 	upperrightvertices2[4].Set(-1.344, 0);
 	upperrightvertices2[5].Set(0, 0);
@@ -106,9 +106,9 @@ bool ModulePlayer::Start()
 	bottomrightvertices2[4].Set(-1.344, 0);
 	bottomrightvertices2[5].Set(0, 0);
 
-	rightkicker2.body = App->physics->CreatePolygons(upperrightvertices2, bottomrightvertices2, 6, 6, b2_dynamicBody, 490, 300, KICKER_REST);
-	rightwheel2 = App->physics->CreateCircle(493, 300, 9, 0,false, b2_staticBody);
-	App->physics->CreateRevoluteJoint(rightkicker2.body->body, rightwheel2->body, 23, -10, -13, 0);
+	rightkicker2.body = App->physics->CreatePolygons(upperrightvertices2, bottomrightvertices2, 6, 6, b2_dynamicBody, 300, 300, KICKER_REST);
+	rightwheel2 = App->physics->CreateCircle(492, 300, 8, 0,false, b2_staticBody);
+	App->physics->CreateRevoluteJoint(rightkicker2.body->body, rightwheel2->body, 20, -10, -13, 0);
 
 	rightkicker2.section.x = 256;
 	rightkicker2.section.y = 196;
@@ -157,6 +157,8 @@ bool ModulePlayer::Start()
 	horse.speed = 0.4f;
 	horse.loop = false;
 
+	death_time = SDL_GetTicks() + 3000;
+
 	return true;
 }
 
@@ -164,15 +166,6 @@ bool ModulePlayer::Start()
 bool ModulePlayer::CleanUp()
 {
 	LOG("Unloading player");
-	/*delete ball.body;
-	delete leftkicker.body;
-	delete leftwheel;
-	delete rightkicker.body;
-	delete rightwheel;
-	delete rightkicker2.body;
-	delete rightwheel2;*/
-
-
 	return true;
 }
 
@@ -182,13 +175,13 @@ update_status ModulePlayer::Update()
 	current_time = SDL_GetTicks();
 
 	if (ball.body == nullptr && current_time>death_time) {
-		ball.body = App->physics->CreateCircle(632, 400, 9, 0.5,true, b2_dynamicBody);
+		ball.body = App->physics->CreateCircle(632, 400, 9, 0.6,true, b2_dynamicBody);
 	}
 
 	if (ball.body != nullptr) {
 		ball.body->GetPosition(ballx, bally);
 
-		if (App->input->GetKey(SDL_SCANCODE_4) == KEY_DOWN && ballx >= 628 && bally >= 390) {
+		if (ballx >= 628 && bally >= 395) {
 			b2Vec2 force(0, -80);
 			App->audio->PlayFx(horse_fx);
 			ball.body->body->ApplyForceToCenter(force, true);
@@ -198,6 +191,7 @@ update_status ModulePlayer::Update()
 		//Check if Ball died and reset multiplier
 		if (bally >= 520) {
 			App->physics->DestroyBody(ball.body->body);
+			delete ball.body;
 			ball.body = nullptr;
 			multiply = 1;
 			lifes--;
@@ -214,27 +208,31 @@ update_status ModulePlayer::Update()
 				score1 = points;
 				points = 0;
 				ballcount.y = 0;
-				App->audio->PlayFx(death_fx);
-				death_time = SDL_GetTicks() + 4500;
+				App->audio->PlayFx(start_fx);
+				death_time = SDL_GetTicks() + 5000;
+				App->scene_intro->RiseCowboys();
 			}
 		}
 	}
 
-	if (App->input->GetKey(SDL_SCANCODE_LEFT) == KEY_DOWN ) {
-		leftkicker.body->Turn(-360);
+	if (App->input->GetKey(SDL_SCANCODE_LEFT) == KEY_DOWN || App->input->GetKey(SDL_SCANCODE_RIGHT) == KEY_DOWN) {
 		App->audio->PlayFx(kicker_fx);
 	}
-	if (App->input->GetKey(SDL_SCANCODE_RIGHT) == KEY_DOWN) {
+	if (App->input->GetKey(SDL_SCANCODE_RIGHT) == KEY_DOWN || App->input->GetKey(SDL_SCANCODE_RIGHT) == KEY_REPEAT) {
 		rightkicker.body->Turn(360);
 		rightkicker2.body->Turn(360);
-		App->audio->PlayFx(kicker_fx);
+	}
+	if (App->input->GetKey(SDL_SCANCODE_LEFT) == KEY_DOWN || App->input->GetKey(SDL_SCANCODE_LEFT) == KEY_REPEAT) {
+		leftkicker.body->Turn(-360);
 	}
 	
 	
-
 	int x, y;
 	
 	App->renderer->Blit(underball, 0, 0, NULL);
+
+	App->scene_intro->Draw();
+
 
 	//DRAW MULTIPLIERS
 	App->renderer->Blit(graphics, 306, 463, &multipliers[0]);
@@ -260,7 +258,7 @@ update_status ModulePlayer::Update()
 
 	App->renderer->Blit(overball, 0, 0, NULL);
 
-	if (ball.body == nullptr && current_time < death_time) {
+	if (current_time < death_time) {
 		App->renderer->Blit(graphics, 250, 270, &ballcount);
 	}
 
@@ -268,11 +266,11 @@ update_status ModulePlayer::Update()
 		App->renderer->Blit(graphics, 585, 370, &horse.GetCurrentFrame());
 	}
 	else {
-		App->renderer->Blit(graphics, 585, 370, &horse.GetCurrentFrame());
+		App->renderer->Blit(graphics, 585, 370, &horse.frames[1]);
 	}
 	 
 	char title[200];
-	sprintf_s(title, "PepsiPinball   Points: %i, Balls: %i, Last Score: %i", points, lifes, score1);
+	sprintf_s(title, "PepsiPinball   Points: %i, Balls: %i, Multiplier: x%i, Last Score: %i", points, lifes, multiply, score1);
 	App->window->SetTitle(title);
 	return UPDATE_CONTINUE;
 }
